@@ -1,0 +1,297 @@
+version: "3.9"
+
+name: aikms-dev
+
+# ─── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  aikms-net:
+    driver: bridge
+
+# ─── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  pg-kms-data:
+  pg-auth-data:
+  pg-audit-data:
+  pg-policy-data:
+  redis-data:
+  vault-data:
+  kafka-data:
+  zk-data:
+
+# ─── Services ──────────────────────────────────────────────────────────────────
+services:
+
+  # ── PostgreSQL – one instance, multiple databases ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aikms
+      POSTGRES_PASSWORD: aikms_dev_password
+      POSTGRES_MULTIPLE_DATABASES: aikms_kms,aikms_auth,aikms_audit,aikms_policy
+    volumes:
+      - pg-kms-data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    ports:
+      - "5432:5432"
+    networks: [aikms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aikms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ──────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ""
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks: [aikms-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Zookeeper ──────────────────────────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zk-data:/var/lib/zookeeper
+    networks: [aikms-net]
+
+  # ── Kafka ──────────────────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    restart: unless-stopped
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    ports:
+      - "29092:29092"
+    networks: [aikms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Vault (dev mode) ──────────────────────────────────────────────────────────
+  vault:
+    image: hashicorp/vault:1.17
+    restart: unless-stopped
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-root-token
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    cap_add: [IPC_LOCK]
+    volumes:
+      - vault-data:/vault/data
+    ports:
+      - "8200:8200"
+    networks: [aikms-net]
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── OPA ───────────────────────────────────────────────────────────────────────
+  opa:
+    image: openpolicyagent/opa:0.67.1
+    restart: unless-stopped
+    command: run --server --addr 0.0.0.0:8181
+    ports:
+      - "8181:8181"
+    networks: [aikms-net]
+
+  # ── HSM Simulator ─────────────────────────────────────────────────────────────
+  hsm-simulator:
+    build:
+      context: .
+      dockerfile: hsm-simulator/Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8090
+    ports:
+      - "8090:8090"
+    networks: [aikms-net]
+
+  # ── Auth Service ──────────────────────────────────────────────────────────────
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      DB_HOST: postgres
+      DB_NAME: aikms_auth
+      DB_USER: aikms
+      DB_PASSWORD: aikms_dev_password
+      KAFKA_BROKERS: kafka:9092
+      REDIS_HOST: redis
+      SERVER_PORT: 8082
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8082:8082"
+    networks: [aikms-net]
+
+  # ── KMS Service ───────────────────────────────────────────────────────────────
+  kms-service:
+    build:
+      context: .
+      dockerfile: kms-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:      { condition: service_healthy }
+      kafka:         { condition: service_healthy }
+      hsm-simulator: { condition: service_started }
+    environment:
+      DB_HOST: postgres
+      DB_NAME: aikms_kms
+      DB_USER: aikms
+      DB_PASSWORD: aikms_dev_password
+      KAFKA_BROKERS: kafka:9092
+      REDIS_HOST: redis
+      OAUTH2_ISSUER_URI: http://auth-service:8082
+      HSM_PROVIDER: SIMULATOR
+      HSM_SIMULATOR_URL: http://hsm-simulator:8090
+      SERVER_PORT: 8081
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8081:8081"
+    networks: [aikms-net]
+
+  # ── Audit Service ─────────────────────────────────────────────────────────────
+  audit-service:
+    build:
+      context: .
+      dockerfile: audit-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      kafka:    { condition: service_healthy }
+    environment:
+      DB_HOST: postgres
+      DB_NAME: aikms_audit
+      DB_USER: aikms
+      DB_PASSWORD: aikms_dev_password
+      KAFKA_BROKERS: kafka:9092
+      OAUTH2_ISSUER_URI: http://auth-service:8082
+      SERVER_PORT: 8083
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8083:8083"
+    networks: [aikms-net]
+
+  # ── Policy Service ────────────────────────────────────────────────────────────
+  policy-service:
+    build:
+      context: .
+      dockerfile: policy-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      opa:      { condition: service_started }
+    environment:
+      DB_HOST: postgres
+      DB_NAME: aikms_policy
+      DB_USER: aikms
+      DB_PASSWORD: aikms_dev_password
+      OPA_URL: http://opa:8181
+      OAUTH2_ISSUER_URI: http://auth-service:8082
+      SERVER_PORT: 8084
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8084:8084"
+    networks: [aikms-net]
+
+  # ── Notification Service ──────────────────────────────────────────────────────
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      kafka: { condition: service_healthy }
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      SERVER_PORT: 8085
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8085:8085"
+    networks: [aikms-net]
+
+  # ── AI/ML Service ─────────────────────────────────────────────────────────────
+  aiml-service:
+    build:
+      context: aiml-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      kafka: { condition: service_healthy }
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      SERVER_PORT: 8086
+    ports:
+      - "8086:8086"
+    networks: [aikms-net]
+
+  # ── API Gateway ───────────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - kms-service
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8082
+      KMS_SERVICE_URL:  http://kms-service:8081
+      AUDIT_SERVICE_URL: http://audit-service:8083
+      POLICY_SERVICE_URL: http://policy-service:8084
+      OAUTH2_ISSUER_URI: http://auth-service:8082
+      REDIS_HOST: redis
+      SERVER_PORT: 8080
+      SPRING_CLOUD_VAULT_ENABLED: "false"
+    ports:
+      - "8080:8080"
+    networks: [aikms-net]
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    restart: unless-stopped
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [aikms-net]
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3001:3000"
+    networks: [aikms-net]

@@ -1,0 +1,12 @@
+rootProject.name = 'aikms'
+
+include(
+    'common',
+    'kms-service',
+    'auth-service',
+    'audit-service',
+    'policy-service',
+    'notification-service',
+    'hsm-simulator',
+    'api-gateway'
+)

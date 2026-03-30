@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functional Requirements — AIKMS</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface-2:   #1e2530;
+      --border:      #30363d;
+      --accent:      #58a6ff;
+      --accent-dim:  #1f3a5f;
+      --green:       #3fb950;
+      --orange:      #e3b341;
+      --red:         #f85149;
+      --purple:      #bc8cff;
+      --text:        #e6edf3;
+      --text-muted:  #8b949e;
+      --text-dim:    #6e7681;
+      --radius:      8px;
+      --radius-lg:   12px;
+      --shadow:      0 4px 24px rgba(0,0,0,.45);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ── Layout ── */
+    .page-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 270px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-logo {
+      padding: 22px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo .product-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .sidebar-logo .doc-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .sidebar nav { padding: 12px 0 24px; flex: 1; }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 14px 20px 4px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 6px 20px 6px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: color .15s, border-color .15s, background .15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar nav a:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .sidebar nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .sidebar nav a.sub {
+      padding-left: 32px;
+      font-size: 12px;
+    }
+
+    /* ── Main Content ── */
+    .main {
+      margin-left: 270px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── Hero Header ── */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #131d2e 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(88,166,255,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(88,166,255,.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 28px;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); font-weight: 600; }
+    .meta-value { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .status-draft { background: rgba(227,179,65,.15); color: var(--orange); border: 1px solid rgba(227,179,65,.3); }
+
+    /* ── Content Area ── */
+    .content {
+      padding: 48px 60px 80px;
+      max-width: 980px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-number {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(88,166,255,.25);
+      border-radius: var(--radius);
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    h3.subsection {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 10px;
+    }
+
+    /* ── FR Cards ── */
+    .fr-group {
+      margin-bottom: 32px;
+    }
+
+    .fr-group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .fr-id {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .fr-id-klm  { background: rgba(63,185,80,.12);  color: var(--green);  border: 1px solid rgba(63,185,80,.3);  }
+    .fr-id-ai   { background: rgba(188,140,255,.12); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
+    .fr-id-rot  { background: rgba(88,166,255,.12);  color: var(--accent); border: 1px solid rgba(88,166,255,.3);  }
+    .fr-id-risk { background: rgba(248,81,73,.12);   color: var(--red);    border: 1px solid rgba(248,81,73,.3);   }
+    .fr-id-ac   { background: rgba(227,179,65,.12);  color: var(--orange); border: 1px solid rgba(227,179,65,.3);  }
+    .fr-id-audit{ background: rgba(63,185,80,.12);   color: var(--green);  border: 1px solid rgba(63,185,80,.3);   }
+    .fr-id-pol  { background: rgba(188,140,255,.12); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
+    .fr-id-sec  { background: rgba(88,166,255,.12);  color: var(--accent); border: 1px solid rgba(88,166,255,.3);  }
+    .fr-id-int  { background: rgba(248,81,73,.12);   color: var(--red);    border: 1px solid rgba(248,81,73,.3);   }
+    .fr-id-dash { background: rgba(227,179,65,.12);  color: var(--orange); border: 1px solid rgba(227,179,65,.3);  }
+    .fr-id-notif{ background: rgba(63,185,80,.12);   color: var(--green);  border: 1px solid rgba(63,185,80,.3);   }
+    .fr-id-dr   { background: rgba(188,140,255,.12); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
+
+    .fr-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .fr-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      transition: border-color .2s;
+    }
+
+    .fr-card:hover { border-color: rgba(88,166,255,.4); }
+
+    .fr-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fr-card ul li {
+      display: flex;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .fr-card ul li::before {
+      content: '▸';
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-size: 11px;
+    }
+
+    .fr-card ul li strong { color: var(--text); font-weight: 600; }
+    .fr-card ul li em { color: var(--orange); font-style: italic; }
+    .fr-card code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--purple);
+    }
+
+    /* Sub-bullets */
+    .fr-card ul li ul {
+      margin-top: 6px;
+      gap: 5px;
+    }
+
+    .fr-card ul li ul li {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .fr-card ul li ul li::before {
+      content: '◦';
+      color: var(--text-dim);
+    }
+
+    /* ── Tables ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead tr { background: var(--surface-2); }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+
+    tbody td {
+      padding: 11px 16px;
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+
+    tbody td:first-child { color: var(--text); font-weight: 500; }
+    tbody td strong { color: var(--text); }
+
+    /* ── Tag Chips ── */
+    .chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 1px 2px;
+    }
+
+    .chip-green  { background: rgba(63,185,80,.15);  color: var(--green);  }
+    .chip-blue   { background: rgba(88,166,255,.15); color: var(--accent); }
+    .chip-orange { background: rgba(227,179,65,.15); color: var(--orange); }
+    .chip-red    { background: rgba(248,81,73,.15);  color: var(--red);    }
+    .chip-purple { background: rgba(188,140,255,.15);color: var(--purple); }
+
+    /* ── Callout ── */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 16px 0;
+      line-height: 1.65;
+    }
+
+    .callout.warn  { border-left-color: var(--orange); }
+    .callout.danger{ border-left-color: var(--red); }
+    .callout.info  { border-left-color: var(--accent); }
+    .callout.success{border-left-color: var(--green); }
+
+    .callout strong { color: var(--text); }
+    .callout p { margin-bottom: 6px; }
+    .callout p:last-child { margin-bottom: 0; }
+
+    /* ── NFR Table Category Chips ── */
+    .cat-perf     { color: var(--accent); }
+    .cat-scale    { color: var(--green); }
+    .cat-avail    { color: var(--orange); }
+    .cat-sec      { color: var(--red); }
+    .cat-use      { color: var(--purple); }
+    .cat-maint    { color: var(--text-muted); }
+    .cat-obs      { color: #60b5ff; }
+
+    /* ── List (non-FR) ── */
+    .plain-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .plain-list li {
+      display: flex;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+
+    .plain-list li::before {
+      content: '•';
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .plain-list li strong { color: var(--text); }
+
+    /* ── Glossary ── */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .glossary-term, .glossary-def {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    .glossary-term:last-of-type, .glossary-def:last-of-type { border-bottom: none; }
+
+    .glossary-term {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--surface-2);
+      border-right: 1px solid var(--border);
+    }
+
+    .glossary-def { color: var(--text-muted); }
+
+    /* ── Back to top ── */
+    .back-to-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 40px;
+      color: var(--text-dim);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .back-to-top:hover { color: var(--accent); }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .hero, .content { padding-left: 24px; padding-right: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      body { background: #fff; color: #000; }
+    }
+  </style>
+</head>
+<body id="top">
+
+<div class="page-wrapper">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="product-name">AIKMS</div>
+      <div class="doc-title">Functional Requirements v1.0</div>
+    </div>
+    <nav>
+      <div class="nav-section-label">Document</div>
+      <a href="#intro">1. Introduction</a>
+      <a href="#scope">2. Scope</a>
+      <a href="#roles">3. User Roles &amp; Permissions</a>
+
+      <div class="nav-section-label">Requirements</div>
+      <a href="#fr">4. Functional Requirements</a>
+      <a href="#klm"   class="sub">4.1 Key Lifecycle</a>
+      <a href="#ai"    class="sub">4.2 Anomaly Detection</a>
+      <a href="#rot"   class="sub">4.3 Key Rotation</a>
+      <a href="#risk"  class="sub">4.4 Risk Scoring</a>
+      <a href="#ac"    class="sub">4.5 Access Control</a>
+      <a href="#audit" class="sub">4.6 Audit &amp; Compliance</a>
+      <a href="#pol"   class="sub">4.7 Policy Management</a>
+      <a href="#sec"   class="sub">4.8 Secrets &amp; Certs</a>
+      <a href="#int"   class="sub">4.9 Integrations &amp; API</a>
+      <a href="#dash"  class="sub">4.10 Dashboard</a>
+      <a href="#notif" class="sub">4.11 Notifications</a>
+      <a href="#dr"    class="sub">4.12 Disaster Recovery</a>
+
+      <div class="nav-section-label">Appendix</div>
+      <a href="#nfr">5. Non-Functional Reqs</a>
+      <a href="#assumptions">6. Assumptions &amp; Constraints</a>
+      <a href="#glossary">7. Glossary</a>
+
+      <div class="nav-section-label">Technical Spec</div>
+      <a href="#techspec">8. Technical Specification</a>
+      <a href="#ts-arch"   class="sub">8.1 System Architecture</a>
+      <a href="#ts-stack"  class="sub">8.2 Technology Stack</a>
+      <a href="#ts-crypto" class="sub">8.3 Cryptographic Standards</a>
+      <a href="#ts-ai"     class="sub">8.4 AI/ML Architecture</a>
+      <a href="#ts-models" class="sub">8.5 Data Models</a>
+      <a href="#ts-api"    class="sub">8.6 API Specification</a>
+      <a href="#ts-infra"  class="sub">8.7 Infrastructure &amp; Deployment</a>
+      <a href="#ts-sec"    class="sub">8.8 Security Architecture</a>
+      <a href="#ts-perf"   class="sub">8.9 Performance &amp; Scalability</a>
+
+      <div class="nav-section-label">Developer Spec</div>
+      <a href="#user-stories">9. User Stories</a>
+      <a href="#state-machine">10. Key Lifecycle State Machine</a>
+      <a href="#seq-diagrams">11. Sequence Diagrams</a>
+      <a href="#db-schema">12. Database Schema</a>
+      <a href="#api-contract">13. API Contract</a>
+      <a href="#env-config">14. Env &amp; Configuration</a>
+      <a href="#resilience">15. Error Handling &amp; Resilience</a>
+      <a href="#multitenancy">16. Multi-Tenancy</a>
+      <a href="#testing">17. Testing Strategy</a>
+      <a href="#runbooks">18. Operational Runbooks</a>
+      <a href="#hsm-sim">19. HSM Simulator</a>
+      <a href="#hsm-sim-overview"   class="sub">19.1 Overview</a>
+      <a href="#hsm-sim-scope"      class="sub">19.2 Scope of Simulation</a>
+      <a href="#hsm-sim-arch"       class="sub">19.3 Architecture</a>
+      <a href="#hsm-sim-stack"      class="sub">19.4 Technology Stack</a>
+      <a href="#hsm-sim-fault"      class="sub">19.5 Fault Injection</a>
+      <a href="#hsm-sim-inspect"    class="sub">19.6 Inspection API</a>
+      <a href="#hsm-sim-config"     class="sub">19.7 Configuration</a>
+      <a href="#hsm-sim-docker"     class="sub">19.8 Docker &amp; Testcontainers</a>
+      <a href="#hsm-sim-modules"    class="sub">19.9 Module Structure</a>
+      <a href="#hsm-sim-security"   class="sub">19.10 Security Constraints</a>
+      <a href="#hsm-sim-ac"         class="sub">19.11 Acceptance Criteria</a>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- Hero -->
+    <div class="hero" id="top">
+      <div class="hero-badge">&#x1F512; Requirements Document</div>
+      <h1>Functional Requirements<br><span>AI-Powered Key Management System</span></h1>
+      <p class="hero-sub">End-to-end specification for cryptographic key lifecycle, AI-driven security intelligence, and compliance automation.</p>
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Version</span>
+          <span class="meta-value">1.0</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Date</span>
+          <span class="meta-value">March 29, 2026</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Status</span>
+          <span class="meta-value"><span class="status-badge status-draft">Draft</span></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">FR Count</span>
+          <span class="meta-value">42 Requirements</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── 1. Introduction ── -->
+      <div class="section" id="intro">
+        <div class="section-header">
+          <span class="section-number">§ 1</span>
+          <h2>Introduction</h2>
+        </div>
+        <div class="callout info">
+          The <strong>AI-Powered Key Management System (AIKMS)</strong> is an enterprise-grade platform for creating, storing, distributing, rotating, and retiring cryptographic keys and secrets. It augments traditional key management with AI/ML capabilities to detect anomalies, predict key compromise, automate lifecycle decisions, and provide intelligent policy recommendations — reducing human error and operational overhead.
+        </div>
+
+        <h3 class="subsection">1.1 Purpose</h3>
+        <p style="color:var(--text-muted);font-size:13.5px;">This document defines the functional requirements that the AIKMS must satisfy. It serves as the authoritative reference for development, testing, and stakeholder alignment.</p>
+
+        <h3 class="subsection">1.2 Intended Audience</h3>
+        <ul class="plain-list">
+          <li>Product Owners &amp; Business Analysts</li>
+          <li>Software Architects &amp; Engineers</li>
+          <li>Security Engineers &amp; Compliance Officers</li>
+          <li>QA Engineers</li>
+        </ul>
+      </div>
+
+      <!-- ── 2. Scope ── -->
+      <div class="section" id="scope">
+        <div class="section-header">
+          <span class="section-number">§ 2</span>
+          <h2>Scope</h2>
+        </div>
+        <p style="color:var(--text-muted);font-size:13.5px;margin-bottom:12px;">AIKMS covers the end-to-end lifecycle of:</p>
+        <ul class="plain-list">
+          <li>Symmetric keys <span class="chip chip-blue">AES-128</span> <span class="chip chip-blue">AES-256</span></li>
+          <li>Asymmetric key pairs <span class="chip chip-purple">RSA-2048/4096</span> <span class="chip chip-purple">EC P-256/P-384/P-521</span> <span class="chip chip-purple">Ed25519</span></li>
+          <li>HMAC secrets and API keys</li>
+          <li>TLS/SSL certificates <span class="chip chip-green">X.509</span></li>
+          <li>SSH keys</li>
+          <li>Passwords and application secrets (vault-style)</li>
+        </ul>
+
+        <div class="callout warn" style="margin-top:16px;">
+          <strong>Out of scope:</strong>
+          <p>HSM firmware development (HSMs are treated as external backends) and Certificate Authority root key ceremonies (AIKMS acts as a subordinate or RA).</p>
+        </div>
+      </div>
+
+      <!-- ── 3. Roles ── -->
+      <div class="section" id="roles">
+        <div class="section-header">
+          <span class="section-number">§ 3</span>
+          <h2>User Roles &amp; Permissions</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Role</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Super Admin</strong></td><td>Full system access; manages roles, system configuration, and global policies</td></tr>
+              <tr><td><strong>Security Admin</strong></td><td>Manages keys, policies, certificates, and audit reports</td></tr>
+              <tr><td><strong>Key Operator</strong></td><td>Creates and manages keys within assigned namespaces; cannot modify policies</td></tr>
+              <tr><td><strong>Auditor</strong></td><td>Read-only access to audit logs, reports, and compliance dashboards</td></tr>
+              <tr><td><strong>Developer / Service Account</strong></td><td>Programmatic access via API; scoped to permitted key operations only</td></tr>
+              <tr><td><strong>AI Engine (System)</strong></td><td>Internal role for AI modules to read events and write risk scores/recommendations</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── 4. Functional Requirements ── -->
+      <div class="section" id="fr">
+        <div class="section-header">
+          <span class="section-number">§ 4</span>
+          <h2>Functional Requirements</h2>
+        </div>
+
+        <!-- 4.1 Key Lifecycle -->
+        <h3 class="subsection" id="klm">4.1 Key Lifecycle Management</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-klm">FR-KLM-001</span>
+            <span class="fr-title">Key Creation</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> allow authorized users to generate cryptographic keys specifying: algorithm, key size, purpose (encrypt/sign/wrap/authenticate), expiry date, namespace/project, and metadata tags.</li>
+              <li>The system <strong>shall</strong> support both software-based key generation and HSM-backed key generation.</li>
+              <li>The system <strong>shall</strong> enforce minimum key strength requirements per algorithm (e.g., RSA ≥ 2048 bits, AES ≥ 128 bits).</li>
+              <li>The system <strong>shall</strong> assign a globally unique Key ID (UUID v4) and record the creation timestamp, creator identity, and originating namespace.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-klm">FR-KLM-002</span>
+            <span class="fr-title">Key Storage</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> store all key material in encrypted form at rest using envelope encryption (a root key encrypting a data encryption key).</li>
+              <li>The system <strong>shall</strong> support multiple backend storage options: software keystore, cloud KMS (AWS KMS, Azure Key Vault, GCP Cloud KMS), and FIPS 140-2/3 Level 3 HSMs.</li>
+              <li>The system <strong>shall</strong> prevent plaintext key material from ever being exposed in logs, error messages, or API responses.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-klm">FR-KLM-003</span>
+            <span class="fr-title">Key Retrieval &amp; Usage</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> allow authorized entities to retrieve a key by Key ID for cryptographic operations.</li>
+              <li>The system <strong>shall</strong> support in-service cryptographic operations (encrypt, decrypt, sign, verify, wrap, unwrap) such that raw key material is never sent to the caller unless an explicit key export is authorized.</li>
+              <li>The system <strong>shall</strong> enforce purpose restrictions on key usage (e.g., a signing key cannot be used for encryption).</li>
+              <li>The system <strong>shall</strong> enforce usage quotas and rate limits per key and per caller identity.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-klm">FR-KLM-004</span>
+            <span class="fr-title">Key Versioning</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> maintain an immutable version history for each key, incrementing the version on every rotation or manual update.</li>
+              <li>The system <strong>shall</strong> allow decryption using any previous active version while defaulting encryption to the current version.</li>
+              <li>The system <strong>shall</strong> allow administrators to explicitly deprecate or retire a specific key version.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-klm">FR-KLM-005</span>
+            <span class="fr-title">Key Retirement &amp; Destruction</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support the following key states: <code>Pending</code>, <code>Active</code>, <code>Suspended</code>, <code>Deprecated</code>, <code>Scheduled for Destruction</code>, <code>Destroyed</code>.</li>
+              <li>The system <strong>shall</strong> require dual-control approval (two authorized administrators) before transitioning a key to <code>Scheduled for Destruction</code>.</li>
+              <li>The system <strong>shall</strong> perform a 7-day (configurable) cooling-off period before physical destruction, during which destruction can be cancelled.</li>
+              <li>The system <strong>shall</strong> cryptographically overwrite all copies of key material upon destruction and record a destruction certificate in the audit log.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.2 AI Anomaly Detection -->
+        <h3 class="subsection" id="ai">4.2 AI-Driven Anomaly Detection</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ai">FR-AI-001</span>
+            <span class="fr-title">Behavioral Baseline Learning</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> continuously collect and process key-usage events (caller identity, timestamp, source IP, geolocation, operation type, volume) to build per-entity behavioral baselines using unsupervised ML models.</li>
+              <li>The system <strong>shall</strong> update behavioral baselines on a configurable rolling window (default: 30 days).</li>
+              <li>The system <strong>shall</strong> store behavioral models in a versioned model registry with rollback capability.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ai">FR-AI-002</span>
+            <span class="fr-title">Real-Time Anomaly Detection</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> evaluate every key-access event against the current behavioral model within 500 ms.</li>
+              <li>The system <strong>shall</strong> flag events as anomalous when they deviate from the baseline by a configurable statistical threshold (default: 3σ).</li>
+              <li>The system <strong>shall</strong> detect the following anomaly categories:
+                <ul>
+                  <li><em>Volumetric anomalies:</em> Sudden spike in decryption operations.</li>
+                  <li><em>Temporal anomalies:</em> Access outside normal operating hours.</li>
+                  <li><em>Geographic anomalies:</em> Access from a new or high-risk country/region.</li>
+                  <li><em>Lateral movement:</em> A service account accessing keys outside its typical namespace.</li>
+                  <li><em>Impossible travel:</em> Two authentications from geographically distant locations within an implausible timeframe.</li>
+                  <li><em>Credential reuse:</em> API keys used simultaneously from multiple IP addresses.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ai">FR-AI-003</span>
+            <span class="fr-title">Anomaly Scoring &amp; Triage</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> assign a numeric anomaly score (0–100) to each detected event.</li>
+              <li>The system <strong>shall</strong> aggregate anomaly scores over a configurable time window to compute a <em>Session Risk Score</em> per caller.</li>
+              <li>The system <strong>shall</strong> automatically escalate events that exceed a configurable risk threshold to the alerting and incident management pipeline.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ai">FR-AI-004</span>
+            <span class="fr-title">AI Model Management</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> allow Security Admins to view current model metadata (version, training date, accuracy metrics, feature importance).</li>
+              <li>The system <strong>shall</strong> support A/B testing of new models against the current production model before promotion.</li>
+              <li>The system <strong>shall</strong> prevent deletion of a model version that is referenced by historical anomaly records.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.3 Key Rotation -->
+        <h3 class="subsection" id="rot">4.3 Automated Key Rotation</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-rot">FR-ROT-001</span>
+            <span class="fr-title">Policy-Based Rotation Scheduling</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support configurable key rotation policies defining: rotation interval (time-based), rotation trigger (usage-count-based, anomaly-score-based), and notification lead time.</li>
+              <li>The system <strong>shall</strong> allow policies to be set at the global, namespace, key-type, or individual key level, with more-specific policies overriding less-specific ones.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-rot">FR-ROT-002</span>
+            <span class="fr-title">AI-Recommended Rotation</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong>, using its AI engine, proactively recommend early rotation when a key's risk score exceeds a configurable threshold.</li>
+              <li>The system <strong>shall</strong> present rotation recommendations to authorized users with an explanation of the contributing risk factors.</li>
+              <li>The system <strong>shall</strong> allow users to accept, defer, or dismiss AI-generated rotation recommendations; dismissals <strong>shall</strong> require a written justification stored in the audit log.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-rot">FR-ROT-003</span>
+            <span class="fr-title">Zero-Downtime Rotation</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> execute rotation by creating a new key version, updating all registered consumers via push notification or pull-on-next-use, and only retiring the previous version after all consumers have acknowledged the new version or a grace period has elapsed.</li>
+              <li>The system <strong>shall</strong> expose a rotation status dashboard showing consumer acknowledgment progress in real time.</li>
+              <li>The system <strong>shall</strong> roll back to the previous key version automatically if more than a configurable percentage of consumers report errors during the grace period.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-rot">FR-ROT-004</span>
+            <span class="fr-title">Certificate Rotation</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support automated renewal of X.509 certificates before their expiry, configurable from 1 to 90 days before expiry.</li>
+              <li>The system <strong>shall</strong> integrate with ACME protocol (Let's Encrypt), internal PKI, and manual CSR upload workflows.</li>
+              <li>The system <strong>shall</strong> automatically push renewed certificates to registered endpoints (web servers, load balancers, secret stores) via plugins.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.4 Risk Scoring -->
+        <h3 class="subsection" id="risk">4.4 Risk Scoring &amp; Threat Intelligence</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-risk">FR-RISK-001</span>
+            <span class="fr-title">Key Risk Score</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> maintain a continuous <em>Key Risk Score</em> (0–100) for every active key, derived from: age, usage anomalies, associated caller risk, algorithm strength, compliance status, and threat intelligence feeds.</li>
+              <li>The system <strong>shall</strong> recalculate Key Risk Scores at a configurable interval (default: every 15 minutes) and on every anomalous usage event.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-risk">FR-RISK-002</span>
+            <span class="fr-title">Threat Intelligence Integration</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> ingest threat intelligence feeds (STIX/TAXII, commercial feeds) to enrich anomaly detection with known malicious IP addresses, compromised credentials, and CVE advisories relevant to cryptographic libraries.</li>
+              <li>The system <strong>shall</strong> automatically elevate the risk score of keys whose associated services are affected by newly disclosed vulnerabilities.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-risk">FR-RISK-003</span>
+            <span class="fr-title">Predictive Compromise Detection</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> use a trained classification model to estimate the probability that a key has been compromised, surfacing keys in the top 5% of predicted compromise probability to the Security Admin dashboard.</li>
+              <li>The system <strong>shall</strong> retrain the predictive model on a scheduled basis (default: weekly) and upon significant drift in key-usage patterns.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.5 Access Control -->
+        <h3 class="subsection" id="ac">4.5 Access Control &amp; Authentication</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ac">FR-AC-001</span>
+            <span class="fr-title">Identity &amp; Authentication</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support authentication via: username/password with MFA (TOTP/FIDO2/WebAuthn), OIDC/OAuth 2.0 (integration with enterprise IdPs such as Okta, Azure AD, Ping Identity), SAML 2.0 SSO, and mutual TLS (mTLS) for service accounts.</li>
+              <li>The system <strong>shall</strong> enforce MFA for all human users accessing Security Admin or Super Admin roles.</li>
+              <li>The system <strong>shall</strong> support just-in-time (JIT) provisioning of user accounts via SCIM 2.0.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ac">FR-AC-002</span>
+            <span class="fr-title">Attribute-Based Access Control (ABAC)</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> implement ABAC allowing policies to define access based on: subject attributes (role, department, clearance level), resource attributes (key purpose, classification, namespace), environment attributes (time of day, IP range, geolocation), and action (create, read, use, rotate, delete).</li>
+              <li>The system <strong>shall</strong> evaluate ABAC policies using a deny-by-default model; access is granted only when an explicit allow policy matches.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ac">FR-AC-003</span>
+            <span class="fr-title">Privileged Access Workstation (PAW) Enforcement</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> allow administrators to restrict Super Admin and Security Admin operations to pre-registered, certificate-authenticated workstation identities.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-ac">FR-AC-004</span>
+            <span class="fr-title">Session Management</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> enforce configurable session timeouts (default: 30 minutes of inactivity for human users).</li>
+              <li>The system <strong>shall</strong> allow administrators to terminate any active session immediately.</li>
+              <li>The system <strong>shall</strong> invalidate all active sessions for a user upon password reset, MFA re-enrollment, or account suspension.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.6 Audit -->
+        <h3 class="subsection" id="audit">4.6 Audit Logging &amp; Compliance</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-audit">FR-AUDIT-001</span>
+            <span class="fr-title">Immutable Audit Log</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> record an immutable, tamper-evident audit log entry for every state-changing event including: key creation/rotation/destruction, access grants/revocations, policy changes, login/logout events, failed authentication attempts, and AI recommendations with user responses.</li>
+              <li>Each log entry <strong>shall</strong> include: event ID, timestamp (UTC, millisecond precision), actor identity, source IP, action, target resource, outcome (success/failure), and session ID.</li>
+              <li>The system <strong>shall</strong> use a cryptographic hash chain (each log entry includes the hash of the previous entry) to detect tampering.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-audit">FR-AUDIT-002</span>
+            <span class="fr-title">Log Retention &amp; Export</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> retain audit logs for a configurable period (default: 7 years) with tiered storage (hot/warm/cold).</li>
+              <li>The system <strong>shall</strong> support export of audit logs in JSON, CSV, and CEF formats for SIEM integration.</li>
+              <li>The system <strong>shall</strong> integrate natively with Splunk, Elasticsearch/OpenSearch, and AWS CloudWatch Logs via configurable log forwarding adapters.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-audit">FR-AUDIT-003</span>
+            <span class="fr-title">Compliance Reporting</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide pre-built compliance report templates for: <span class="chip chip-orange">PCI-DSS</span> <span class="chip chip-orange">FIPS 140-3</span> <span class="chip chip-orange">NIST SP 800-57</span> <span class="chip chip-orange">SOC 2 Type II</span> <span class="chip chip-orange">ISO 27001</span> <span class="chip chip-orange">GDPR</span> <span class="chip chip-orange">HIPAA</span></li>
+              <li>The system <strong>shall</strong> allow Auditors to generate on-demand compliance reports scoped by date range, namespace, key type, or regulation.</li>
+              <li>The system <strong>shall</strong> track and display the compliance posture score per regulation, updated daily.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.7 Policy -->
+        <h3 class="subsection" id="pol">4.7 Policy Management</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-pol">FR-POL-001</span>
+            <span class="fr-title">Policy Definition</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> allow Security Admins to define, version, and manage cryptographic policies specifying: allowed algorithms and key sizes, maximum key age, mandatory rotation intervals, permitted key purposes, required approval workflows, and export restrictions.</li>
+              <li>The system <strong>shall</strong> support policy inheritance: child namespaces inherit parent policies unless explicitly overridden.</li>
+              <li>The system <strong>shall</strong> validate all new policies against a built-in rule engine to prevent conflicting or insecure configurations before saving.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-pol">FR-POL-002</span>
+            <span class="fr-title">AI Policy Recommendations</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> use the AI engine to analyze current key usage patterns, compliance gaps, and industry benchmarks to generate policy recommendations.</li>
+              <li>Policy recommendations <strong>shall</strong> include: the proposed change, affected keys/namespaces, estimated compliance improvement, and risk reduction delta.</li>
+              <li>Users <strong>shall</strong> be able to accept recommendations with one click, which automatically creates a new policy version pending approval.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-pol">FR-POL-003</span>
+            <span class="fr-title">Approval Workflows</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support configurable multi-stage approval workflows for sensitive operations (key creation, policy change, key export, destruction).</li>
+              <li>The system <strong>shall</strong> integrate with ticketing systems (Jira, ServiceNow) to create approval tickets and track approvals bi-directionally.</li>
+              <li>The system <strong>shall</strong> enforce a quorum approval model, requiring M-of-N approvers to proceed.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.8 Secrets & Certs -->
+        <h3 class="subsection" id="sec">4.8 Secrets &amp; Certificate Management</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-sec">FR-SEC-001</span>
+            <span class="fr-title">Secrets Vault</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide a secrets vault for storing application secrets (database passwords, API tokens, OAuth credentials) with version history, namespace isolation, and lease-based dynamic secrets.</li>
+              <li>The system <strong>shall</strong> support dynamic secret generation for supported backends (PostgreSQL, MySQL, MongoDB, AWS IAM, Azure Service Principal) with configurable TTL and automatic revocation.</li>
+              <li>The system <strong>shall</strong> allow secrets to be injected into workloads at runtime via: environment variable injection (Kubernetes mutating webhook), mounted file volumes, and REST API pull.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-sec">FR-SEC-002</span>
+            <span class="fr-title">Certificate Lifecycle Management</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> maintain a certificate inventory across all registered environments, displaying: subject, issuer, expiry date, associated service, and current status.</li>
+              <li>The system <strong>shall</strong> alert when certificates are within the configured expiry warning window (default: 30 days).</li>
+              <li>The system <strong>shall</strong> track certificate revocation status via OCSP and CRL, alerting immediately on revocation of any monitored certificate.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-sec">FR-SEC-003</span>
+            <span class="fr-title">SSH Key Management</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> manage SSH public/private key pairs for host and user authentication, including creation, distribution to target hosts via SSH CA, rotation, and revocation.</li>
+              <li>The system <strong>shall</strong> enforce maximum lifetime for SSH certificates (signed by the SSH CA) with configurable TTL.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.9 Integrations -->
+        <h3 class="subsection" id="int">4.9 Integrations &amp; API Gateway</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-int">FR-INT-001</span>
+            <span class="fr-title">RESTful API</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> expose a comprehensive REST API (OpenAPI 3.1 specification) covering all functional capabilities.</li>
+              <li>All API endpoints <strong>shall</strong> require authentication (OAuth 2.0 Bearer token or mTLS) and enforce ABAC authorization.</li>
+              <li>The system <strong>shall</strong> version the API (e.g., <code>/api/v1/</code>, <code>/api/v2/</code>) and maintain backward compatibility for at least two major versions.</li>
+              <li>The API <strong>shall</strong> enforce rate limiting per client identity with configurable thresholds and return HTTP 429 with <code>Retry-After</code> headers when limits are exceeded.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-int">FR-INT-002</span>
+            <span class="fr-title">SDK Support</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide client SDKs for: <span class="chip chip-blue">Go</span> <span class="chip chip-blue">Python</span> <span class="chip chip-blue">Java</span> <span class="chip chip-blue">Node.js</span> <span class="chip chip-blue">.NET/C#</span></li>
+              <li>Each SDK <strong>shall</strong> handle authentication, token refresh, retry logic with exponential backoff, and transparent key caching.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-int">FR-INT-003</span>
+            <span class="fr-title">Cloud &amp; Infrastructure Integrations</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> integrate with: <span class="chip chip-orange">AWS KMS / Secrets Manager / IAM</span> <span class="chip chip-orange">Azure Key Vault / Managed Identities</span> <span class="chip chip-orange">GCP Cloud KMS / Secret Manager</span> <span class="chip chip-green">HashiCorp Vault</span> <span class="chip chip-green">Kubernetes</span> <span class="chip chip-green">Terraform</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-int">FR-INT-004</span>
+            <span class="fr-title">CI/CD Pipeline Integration</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide plugins for GitHub Actions, GitLab CI, and Jenkins enabling pipelines to retrieve secrets and keys securely without storing credentials in pipeline configuration.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.10 Dashboard -->
+        <h3 class="subsection" id="dash">4.10 Dashboard &amp; Reporting</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dash">FR-DASH-001</span>
+            <span class="fr-title">Security Operations Dashboard</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide a real-time dashboard displaying: total active keys by type, keys nearing expiry (next 7/30/90 days), current anomaly feed with severity, top risky keys ranked by AI risk score, recent audit events, and compliance posture summary.</li>
+              <li>The system <strong>shall</strong> support customizable dashboard widgets with drag-and-drop layout persistence per user.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dash">FR-DASH-002</span>
+            <span class="fr-title">AI Insights Panel</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> display an AI Insights panel showing: active anomaly investigations, pending AI rotation recommendations, predictive compromise alerts, and model performance metrics (precision, recall, F1).</li>
+              <li>The system <strong>shall</strong> allow Security Admins to provide feedback on AI recommendations (correct/incorrect) to improve model accuracy over time.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dash">FR-DASH-003</span>
+            <span class="fr-title">Key Inventory View</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> provide a searchable, filterable key inventory with columns for: Key ID, name, type, algorithm, status, namespace, expiry, risk score, and last used.</li>
+              <li>The system <strong>shall</strong> support bulk operations on selected keys: tag, rotate, suspend, and export to CSV.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.11 Notifications -->
+        <h3 class="subsection" id="notif">4.11 Notifications &amp; Alerting</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-notif">FR-NOTIF-001</span>
+            <span class="fr-title">Alert Channels</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support delivery of alerts and notifications via: <span class="chip chip-blue">Email (SMTP)</span> <span class="chip chip-blue">Slack</span> <span class="chip chip-blue">Microsoft Teams</span> <span class="chip chip-blue">PagerDuty</span> <span class="chip chip-blue">OpsGenie</span> <span class="chip chip-blue">Webhook</span> <span class="chip chip-blue">SMS</span></li>
+              <li>Each alert channel <strong>shall</strong> be configurable per alert severity level (Info, Warning, Critical).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-notif">FR-NOTIF-002</span>
+            <span class="fr-title">Alert Types</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> generate alerts for: key expiry approaching, certificate expiry approaching, anomaly detected (with risk score), AI-recommended rotation available, key destruction scheduled, policy violation, authentication failure (threshold-based), HSM connectivity loss, and compliance score degradation.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-notif">FR-NOTIF-003</span>
+            <span class="fr-title">Alert Deduplication &amp; Throttling</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> deduplicate identical alerts within a configurable suppression window (default: 1 hour) to prevent alert fatigue.</li>
+              <li>The system <strong>shall</strong> support alert escalation: if a Warning alert is not acknowledged within a configurable SLA, it is automatically escalated to Critical.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4.12 DR & HA -->
+        <h3 class="subsection" id="dr">4.12 Disaster Recovery &amp; High Availability</h3>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dr">FR-DR-001</span>
+            <span class="fr-title">High Availability</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support active-active multi-node deployment with no single point of failure for the API tier, AI inference tier, and storage tier.</li>
+              <li>The system <strong>shall</strong> achieve an RTO (Recovery Time Objective) of ≤ 5 minutes and RPO (Recovery Point Objective) of ≤ 1 minute for any single node failure.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dr">FR-DR-002</span>
+            <span class="fr-title">Backup &amp; Restore</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> perform encrypted backups of all key material and configuration on a configurable schedule (default: hourly incremental, daily full).</li>
+              <li>The system <strong>shall</strong> support off-site backup replication to a secondary region or cloud storage bucket.</li>
+              <li>The system <strong>shall</strong> provide a tested, documented restore procedure with estimated time-to-restore displayed in the admin interface.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="fr-group">
+          <div class="fr-group-header">
+            <span class="fr-id fr-id-dr">FR-DR-003</span>
+            <span class="fr-title">Key Split &amp; Escrow</span>
+          </div>
+          <div class="fr-card">
+            <ul>
+              <li>The system <strong>shall</strong> support Shamir's Secret Sharing to split sensitive master key material into N shares requiring M shares to reconstruct (configurable M-of-N).</li>
+              <li>The system <strong>shall</strong> allow escrowed key shares to be securely distributed to designated custodians with hardware-token-protected delivery.</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /section fr -->
+
+      <!-- ── 5. NFR ── -->
+      <div class="section" id="nfr">
+        <div class="section-header">
+          <span class="section-number">§ 5</span>
+          <h2>Non-Functional Requirements</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Category</th><th>Requirement</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>NFR-01</td><td><span class="cat-perf">Performance</span></td><td>API p99 latency ≤ 100 ms for key retrieval operations under normal load</td></tr>
+              <tr><td>NFR-02</td><td><span class="cat-perf">Performance</span></td><td>AI anomaly scoring latency ≤ 500 ms per event</td></tr>
+              <tr><td>NFR-03</td><td><span class="cat-scale">Scalability</span></td><td>Support ≥ 10,000 concurrent API clients and ≥ 100 million key-operation events per day</td></tr>
+              <tr><td>NFR-04</td><td><span class="cat-avail">Availability</span></td><td>System availability ≥ 99.99% uptime annually (≤ 52 min planned/unplanned downtime)</td></tr>
+              <tr><td>NFR-05</td><td><span class="cat-sec">Security</span></td><td>All data in transit encrypted using TLS 1.2+ (TLS 1.3 preferred); TLS 1.0/1.1 disabled</td></tr>
+              <tr><td>NFR-06</td><td><span class="cat-sec">Security</span></td><td>All cryptographic operations compliant with FIPS 140-3 when HSM backend is enabled</td></tr>
+              <tr><td>NFR-07</td><td><span class="cat-sec">Security</span></td><td>Zero trust architecture: every internal service-to-service call authenticated and authorized</td></tr>
+              <tr><td>NFR-08</td><td><span class="cat-use">Usability</span></td><td>Web UI fully functional on modern browsers (Chrome, Firefox, Edge, Safari latest 2 versions)</td></tr>
+              <tr><td>NFR-09</td><td><span class="cat-maint">Maintainability</span></td><td>System deployed as containerized microservices (Kubernetes-native); infrastructure as code</td></tr>
+              <tr><td>NFR-10</td><td><span class="cat-obs">Observability</span></td><td>Expose Prometheus metrics for all services; distributed tracing via OpenTelemetry</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── 6. Assumptions ── -->
+      <div class="section" id="assumptions">
+        <div class="section-header">
+          <span class="section-number">§ 6</span>
+          <h2>Assumptions &amp; Constraints</h2>
+        </div>
+
+        <h3 class="subsection">Assumptions</h3>
+        <ul class="plain-list">
+          <li><strong>A1:</strong> AIKMS will be deployed on-premises, in a private cloud, or in a hybrid cloud environment. Multi-tenancy is achieved via namespace isolation, not separate deployments.</li>
+          <li><strong>A2:</strong> HSM devices are procured and physically managed by the customer. AIKMS communicates with HSMs over PKCS#11 or vendor-specific APIs.</li>
+          <li><strong>A3:</strong> The AI/ML training pipeline requires access to a minimum of 90 days of historical key-usage event data before producing reliable behavioral baselines.</li>
+          <li><strong>A4:</strong> Internet access from the AIKMS deployment is not required for core key management operations; threat intelligence feeds may be configured to operate in air-gapped mode via manual import.</li>
+        </ul>
+
+        <h3 class="subsection">Constraints</h3>
+        <ul class="plain-list" style="margin-top:10px;">
+          <li><strong>C1:</strong> AIKMS must not store cleartext private key material in any relational database, log file, or object store.</li>
+          <li><strong>C2:</strong> All changes to the AI model in production must pass a staged rollout with at least 48-hour soak testing in shadow mode before replacing the current model.</li>
+          <li><strong>C3:</strong> The system must be deployable in an air-gapped environment with no dependency on public internet services for core functionality.</li>
+        </ul>
+      </div>
+
+      <!-- ── 7. Glossary ── -->
+      <div class="section" id="glossary">
+        <div class="section-header">
+          <span class="section-number">§ 7</span>
+          <h2>Glossary</h2>
+        </div>
+        <div class="glossary-grid">
+          <div class="glossary-term">ABAC</div>
+          <div class="glossary-def">Attribute-Based Access Control — access decisions based on attributes of subject, resource, and environment</div>
+          <div class="glossary-term">ACME</div>
+          <div class="glossary-def">Automated Certificate Management Environment — protocol for automatic X.509 certificate issuance</div>
+          <div class="glossary-term">AI Engine</div>
+          <div class="glossary-def">The internal system component responsible for ML model inference, anomaly detection, and risk scoring</div>
+          <div class="glossary-term">Behavioral Baseline</div>
+          <div class="glossary-def">A statistical model of normal usage patterns for a given entity, derived from historical events</div>
+          <div class="glossary-term">DEK</div>
+          <div class="glossary-def">Data Encryption Key — a symmetric key used directly for encrypting data</div>
+          <div class="glossary-term">Envelope Encryption</div>
+          <div class="glossary-def">Encrypting a DEK with a Key Encryption Key (KEK) so that only the KEK needs to be tightly protected</div>
+          <div class="glossary-term">FIDO2 / WebAuthn</div>
+          <div class="glossary-def">Web Authentication standard for phishing-resistant hardware-backed MFA</div>
+          <div class="glossary-term">HSM</div>
+          <div class="glossary-def">Hardware Security Module — a tamper-resistant hardware device for secure key storage and cryptographic operations</div>
+          <div class="glossary-term">JIT Provisioning</div>
+          <div class="glossary-def">Just-In-Time user account creation triggered by the first SSO login</div>
+          <div class="glossary-term">KEK</div>
+          <div class="glossary-def">Key Encryption Key — a key used to encrypt/wrap other keys</div>
+          <div class="glossary-term">mTLS</div>
+          <div class="glossary-def">Mutual TLS — both client and server present certificates for authentication</div>
+          <div class="glossary-term">OIDC</div>
+          <div class="glossary-def">OpenID Connect — identity layer on top of OAuth 2.0</div>
+          <div class="glossary-term">PKI</div>
+          <div class="glossary-def">Public Key Infrastructure — the framework of CAs, certificates, and policies</div>
+          <div class="glossary-term">PKCS#11</div>
+          <div class="glossary-def">Cryptographic Token Interface Standard — API for interacting with HSMs</div>
+          <div class="glossary-term">RPO</div>
+          <div class="glossary-def">Recovery Point Objective — maximum acceptable data loss measured in time</div>
+          <div class="glossary-term">RTO</div>
+          <div class="glossary-def">Recovery Time Objective — maximum tolerable downtime after a failure</div>
+          <div class="glossary-term">SCIM</div>
+          <div class="glossary-def">System for Cross-domain Identity Management — standard for user provisioning</div>
+          <div class="glossary-term">STIX/TAXII</div>
+          <div class="glossary-def">Structured Threat Information eXpression / Trusted Automated eXchange of Indicator Information — threat intel standards</div>
+          <div class="glossary-term">TTL</div>
+          <div class="glossary-def">Time-to-Live — duration before a dynamic secret or certificate is automatically revoked</div>
+        </div>
+      </div>
+
+      <!-- ── 8. Technical Specification ── -->
+      <div class="section" id="techspec">
+        <div class="section-header">
+          <span class="section-number">§ 8</span>
+          <h2>Technical Specification</h2>
+        </div>
+
+        <!-- 8.1 Architecture -->
+        <h3 class="subsection" id="ts-arch">8.1 System Architecture</h3>
+        <div class="callout info" style="margin-bottom:16px;">
+          AIKMS is built as a set of loosely coupled microservices communicating over mTLS-secured <strong>gRPC</strong> (internal) and <strong>REST/HTTP 2</strong> (external). All services are stateless where possible; state is persisted in dedicated, independently scalable data stores.
+        </div>
+
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.6;color:var(--text-muted);margin-bottom:20px;">&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                   API Gateway / Load Balancer                   &#x2502;
+&#x2502;         (Rate Limiting &middot; Auth Enforcement &middot; TLS Termination)         &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        REST / HTTP2                            REST / HTTP2
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;                  &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;  Key Management   &#x2502;&#x25C4;&#x2500;gRPC&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BA; Policy Engine Service  &#x2502;
+&#x2502;  Service (KMS)    &#x2502;                  &#x2502;  (OPA / Rego)          &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;                  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        gRPC
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;  AI/ML Engine     &#x2502; &#x2502;  Audit Service      &#x2502; &#x2502;  Secrets Vault &#x2502;
+&#x2502;  Service          &#x2502; &#x2502;  (Immutable Log)    &#x2502; &#x2502;  Service       &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        &#x2502;                      &#x2502;                      &#x2502;
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;           Event Bus (Apache Kafka / NATS JetStream)            &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        &#x2502;                      &#x2502;                      &#x2502;
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;  Auth &amp; Identity  &#x2502; &#x2502;  Notification Svc  &#x2502; &#x2502;  Certificate   &#x2502;
+&#x2502;  Service (OIDC)   &#x2502; &#x2502;  (Alert Dispatch)  &#x2502; &#x2502;  Manager Svc   &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        &#x2502;
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BC;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                     Storage Layer                               &#x2502;
+&#x2502;  PostgreSQL (metadata) &middot; Redis (cache) &middot; HSM (keys)             &#x2502;
+&#x2502;  Object Store S3-compat (audit archive) &middot; Vector DB (AI)        &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;</pre>
+
+        <h3 class="subsection">Core Services</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Service</th><th>Responsibility</th></tr></thead>
+            <tbody>
+              <tr><td><strong>API Gateway</strong></td><td>TLS termination, rate limiting, OAuth 2.0 token introspection, request routing</td></tr>
+              <tr><td><strong>Key Management Service (KMS)</strong></td><td>Key CRUD, lifecycle state machine, versioning, envelope encryption, HSM offload</td></tr>
+              <tr><td><strong>Policy Engine Service</strong></td><td>ABAC policy evaluation (Open Policy Agent), policy CRUD, approval workflow orchestration</td></tr>
+              <tr><td><strong>AI/ML Engine Service</strong></td><td>Behavioral baseline training, real-time anomaly scoring, risk score computation, model registry</td></tr>
+              <tr><td><strong>Audit Service</strong></td><td>Immutable log ingestion, hash-chain maintenance, log export, SIEM forwarding</td></tr>
+              <tr><td><strong>Auth &amp; Identity Service</strong></td><td>OIDC/SAML IdP federation, session management, SCIM provisioning, token issuance</td></tr>
+              <tr><td><strong>Secrets Vault Service</strong></td><td>Dynamic secret generation, lease management, secret versioning, injection adapters</td></tr>
+              <tr><td><strong>Certificate Manager Service</strong></td><td>X.509 lifecycle, ACME client, OCSP/CRL monitoring, push distribution</td></tr>
+              <tr><td><strong>Notification Service</strong></td><td>Alert routing, deduplication, escalation, multi-channel dispatch</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.2 Technology Stack -->
+        <h3 class="subsection" id="ts-stack">8.2 Technology Stack</h3>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Backend</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Technology</th><th>Rationale</th></tr></thead>
+            <tbody>
+              <tr><td>Service runtime</td><td><span class="chip chip-orange">Java 21 (LTS) + Spring Boot 3.3</span></td><td>Long-term support, virtual threads (Project Loom), mature security ecosystem</td></tr>
+              <tr><td>Web framework</td><td><span class="chip chip-orange">Spring WebFlux (reactive)</span></td><td>Non-blocking I/O for high-concurrency key operation endpoints</td></tr>
+              <tr><td>Build tool</td><td><span class="chip chip-orange">Gradle 8 (multi-module)</span></td><td>Fast incremental builds, dependency management across microservices</td></tr>
+              <tr><td>AI/ML inference</td><td><span class="chip chip-blue">Python 3.12 + FastAPI</span></td><td>Ecosystem compatibility (scikit-learn, PyTorch, Hugging Face)</td></tr>
+              <tr><td>Java–Python bridge</td><td><span class="chip chip-purple">gRPC (Protocol Buffers 3)</span></td><td>Strongly typed contracts between Java services and Python AI engine</td></tr>
+              <tr><td>Inter-service RPC</td><td><span class="chip chip-purple">gRPC + Spring gRPC</span></td><td>Bidirectional streaming for event feeds between Java microservices</td></tr>
+              <tr><td>API gateway</td><td><span class="chip chip-purple">Spring Cloud Gateway 4 + Envoy</span></td><td>Spring-native routing; Envoy for sidecar L7 policies and mTLS</td></tr>
+              <tr><td>Policy engine</td><td><span class="chip chip-orange">OPA 0.65 + Java OPA client</span></td><td>Rego policies evaluated from Spring Security filter chain</td></tr>
+              <tr><td>Security framework</td><td><span class="chip chip-red">Spring Security 6 + Nimbus JOSE JWT</span></td><td>OAuth 2.0 resource server, mTLS client auth, JWT validation</td></tr>
+              <tr><td>Event bus</td><td><span class="chip chip-orange">Apache Kafka 3.7 + Spring Kafka</span></td><td>Durable event log, @KafkaListener, replay support for ML retraining</td></tr>
+              <tr><td>Primary database</td><td><span class="chip chip-green">PostgreSQL 16 + Spring Data JPA / Hibernate 6</span></td><td>ACID guarantees, row-level security for namespace isolation</td></tr>
+              <tr><td>Cache / session</td><td><span class="chip chip-green">Redis 7.2 + Spring Data Redis</span></td><td>Sub-millisecond key metadata cache, session token storage</td></tr>
+              <tr><td>HSM interface</td><td><span class="chip chip-red">PKCS#11 v2.40 via SunPKCS11 (JCA/JCE)</span></td><td>JCA/JCE integration with Thales, Entrust, AWS CloudHSM</td></tr>
+              <tr><td>Container orchestration</td><td><span class="chip chip-blue">Kubernetes 1.30</span></td><td>Service deployment, auto-scaling, rolling updates</td></tr>
+              <tr><td>Service mesh</td><td><span class="chip chip-blue">Istio 1.21</span></td><td>mTLS enforcement between all pods</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Frontend</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+            <tbody>
+              <tr><td>UI framework</td><td><span class="chip chip-blue">React 18 + TypeScript 5</span></td></tr>
+              <tr><td>State management</td><td><span class="chip chip-purple">Zustand + React Query</span></td></tr>
+              <tr><td>Charts / dashboards</td><td><span class="chip chip-orange">Apache ECharts</span></td></tr>
+              <tr><td>Design system</td><td><span class="chip chip-green">Tailwind CSS + Radix UI</span></td></tr>
+              <tr><td>Build tool</td><td><span class="chip chip-green">Vite 5</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Infrastructure</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+            <tbody>
+              <tr><td>Infrastructure as code</td><td><span class="chip chip-purple">Terraform 1.8 + Helm 3</span></td></tr>
+              <tr><td>CI/CD</td><td><span class="chip chip-blue">GitHub Actions / GitLab CI</span></td></tr>
+              <tr><td>Observability</td><td><span class="chip chip-orange">Prometheus + Grafana + Jaeger (OpenTelemetry)</span></td></tr>
+              <tr><td>Log aggregation</td><td><span class="chip chip-green">Fluent Bit &#x2192; Elasticsearch/OpenSearch</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.3 Cryptographic Standards -->
+        <h3 class="subsection" id="ts-crypto">8.3 Cryptographic Standards</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Algorithm</th><th>Key Sizes</th><th>Permitted Purposes</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>AES-GCM</td><td>128, 256 bit</td><td>Encrypt, Decrypt, Wrap, Unwrap</td><td><span class="chip chip-green">Recommended</span></td></tr>
+              <tr><td>AES-CBC</td><td>128, 256 bit</td><td>Encrypt, Decrypt (legacy interop only)</td><td><span class="chip chip-orange">Legacy</span></td></tr>
+              <tr><td>RSA-OAEP</td><td>2048, 3072, 4096 bit</td><td>Encrypt, Decrypt, Wrap</td><td><span class="chip chip-blue">Supported</span></td></tr>
+              <tr><td>RSA-PSS</td><td>2048, 3072, 4096 bit</td><td>Sign, Verify</td><td><span class="chip chip-blue">Supported</span></td></tr>
+              <tr><td>ECDSA</td><td>P-256, P-384, P-521</td><td>Sign, Verify</td><td><span class="chip chip-green">Recommended</span></td></tr>
+              <tr><td>Ed25519</td><td>256 bit</td><td>Sign, Verify</td><td><span class="chip chip-green">Recommended</span></td></tr>
+              <tr><td>HMAC</td><td>SHA-256, SHA-384, SHA-512</td><td>MAC, Authenticate</td><td><span class="chip chip-blue">Supported</span></td></tr>
+              <tr><td>ECDH / X25519</td><td>P-256, P-384, 256 bit</td><td>Key Agreement</td><td><span class="chip chip-blue">Supported</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout danger">
+          <strong>Prohibited Algorithms:</strong> DES, 3DES, RC4, MD5-based MACs, RSA &lt; 2048 bits, EC curves other than NIST-approved or Curve25519. The system <strong>shall</strong> reject key creation requests using any prohibited algorithm.
+        </div>
+        <h3 class="subsection">Envelope Encryption Scheme</h3>
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.7;color:var(--text-muted);">Plaintext Key Material
+        &#x2502;
+        &#x25BC;  AES-256-GCM (random per-key DEK)
+Encrypted Key Material &#x2500;&#x2500; stored in PostgreSQL &#x2500;&#x2500;&#x25BA; key_versions table
+        &#x2502;
+   DEK encrypted with namespace KEK (AES-256-GCM)
+        &#x2502;
+   KEK encrypted with Master Key (stored in HSM or cloud KMS root)</pre>
+
+        <!-- 8.4 AI/ML Architecture -->
+        <h3 class="subsection" id="ts-ai">8.4 AI/ML Architecture</h3>
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.7;color:var(--text-muted);">Kafka Topic: key-usage-events
+        &#x2502;
+        &#x25BC;
+Feature Extraction Service
+(caller_id, key_id, op_type, src_ip, geo, hour_of_day,
+ day_of_week, ops_per_minute, namespace, key_age)
+        &#x2502;
+        &#x25BC;
+Online Scoring Engine &#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x25BA; Anomaly Score (0-100)
+(Isolation Forest + Autoencoder ensemble,                    &#x2502;
+ served via ONNX Runtime, p99 &lt; 20 ms)                     &#x25BC;
+        &#x2502;                                       Kafka: anomaly-events
+Behavioral Baseline Store                                   &#x2502;
+(per-entity rolling statistics,                             &#x25BC;
+ updated every 5 min, Redis TimeSeries)             Alert &amp; Incident Pipeline
+        &#x2502;
+        &#x25BC;
+Batch Retraining Pipeline  (weekly, Apache Spark / Ray)
+ &#x2514;&#x2500;&#x2500; Feature store: Delta Lake
+ &#x2514;&#x2500;&#x2500; Model registry: MLflow
+ &#x2514;&#x2500;&#x2500; Shadow eval: 48-hour A/B soak before promotion</pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Type</th><th>Purpose</th><th>Retraining Cadence</th></tr></thead>
+            <tbody>
+              <tr><td>Behavioral Anomaly Detector</td><td>Isolation Forest</td><td>Per-event unsupervised anomaly scoring</td><td>Weekly + on drift</td></tr>
+              <tr><td>Autoencoder Reconstruction</td><td>LSTM Autoencoder</td><td>Temporal sequence anomaly detection</td><td>Weekly</td></tr>
+              <tr><td>Compromise Classifier</td><td>XGBoost</td><td>Predict key compromise probability</td><td>Weekly</td></tr>
+              <tr><td>Policy Recommendation Engine</td><td>Rule-based + LLM-assisted</td><td>Suggest policy improvements</td><td>On-demand</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection">Feature Engineering</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Feature</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>ops_per_minute</code></td><td>Numeric</td><td>Rolling 1-min operation count per caller</td></tr>
+              <tr><td><code>geo_risk_score</code></td><td>Numeric</td><td>Country-level threat score from threat intel feed</td></tr>
+              <tr><td><code>hour_sin</code> / <code>hour_cos</code></td><td>Cyclic encoding</td><td>Time of day (cyclically encoded)</td></tr>
+              <tr><td><code>is_new_ip</code></td><td>Boolean</td><td>Source IP not seen in past 30 days for this caller</td></tr>
+              <tr><td><code>key_age_days</code></td><td>Numeric</td><td>Days since key creation</td></tr>
+              <tr><td><code>cross_namespace</code></td><td>Boolean</td><td>Operation targets a namespace atypical for caller</td></tr>
+              <tr><td><code>concurrent_ip_count</code></td><td>Numeric</td><td>Distinct IPs seen for same credential in past 5 min</td></tr>
+              <tr><td><code>velocity_delta</code></td><td>Numeric</td><td>% change in ops/min vs 7-day baseline</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.5 Data Models -->
+        <h3 class="subsection" id="ts-models">8.5 Data Models</h3>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Key Entity (PostgreSQL)</h3>
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.7;color:var(--text-muted);"><span style="color:var(--accent)">CREATE TABLE</span> keys (
+  key_id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             TEXT NOT NULL,
+  namespace_id     UUID NOT NULL REFERENCES namespaces(namespace_id),
+  algorithm        TEXT NOT NULL,
+  key_size_bits    INTEGER NOT NULL,
+  purpose          TEXT[] NOT NULL,
+  state            TEXT NOT NULL,   <span style="color:var(--text-dim)">-- PENDING|ACTIVE|SUSPENDED|DEPRECATED|SCHEDULED_DESTROY|DESTROYED</span>
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by       UUID NOT NULL REFERENCES identities(identity_id),
+  expires_at       TIMESTAMPTZ,
+  current_version  INTEGER NOT NULL DEFAULT 1,
+  risk_score       NUMERIC(5,2) DEFAULT 0,
+  tags             JSONB DEFAULT '{}',
+  hsm_backed       BOOLEAN NOT NULL DEFAULT false
+);
+
+<span style="color:var(--accent)">CREATE TABLE</span> key_versions (
+  version_id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key_id               UUID NOT NULL REFERENCES keys(key_id),
+  version_number       INTEGER NOT NULL,
+  encrypted_key_dek    BYTEA NOT NULL,  <span style="color:var(--text-dim)">-- DEK wrapped with namespace KEK</span>
+  dek_iv               BYTEA NOT NULL,
+  dek_tag              BYTEA NOT NULL,
+  key_checksum         TEXT NOT NULL,   <span style="color:var(--text-dim)">-- SHA-256 of plaintext key</span>
+  state                TEXT NOT NULL,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  retired_at           TIMESTAMPTZ,
+  UNIQUE (key_id, version_number)
+);</pre>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Audit Log Entry (PostgreSQL)</h3>
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.7;color:var(--text-muted);"><span style="color:var(--accent)">CREATE TABLE</span> audit_log (
+  event_id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sequence_number  BIGSERIAL UNIQUE NOT NULL,
+  prev_hash        TEXT NOT NULL,   <span style="color:var(--text-dim)">-- SHA-256 of previous row (hash chain)</span>
+  event_hash       TEXT NOT NULL,   <span style="color:var(--text-dim)">-- SHA-256 of this row content</span>
+  timestamp_utc    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actor_id         UUID,
+  actor_type       TEXT NOT NULL,   <span style="color:var(--text-dim)">-- HUMAN | SERVICE_ACCOUNT | AI_ENGINE</span>
+  source_ip        INET,
+  session_id       UUID,
+  action           TEXT NOT NULL,   <span style="color:var(--text-dim)">-- 'KEY_CREATE', 'KEY_ROTATE', etc.</span>
+  resource_type    TEXT NOT NULL,
+  resource_id      UUID,
+  outcome          TEXT NOT NULL,   <span style="color:var(--text-dim)">-- SUCCESS | FAILURE</span>
+  detail           JSONB DEFAULT '{}'
+);
+<span style="color:var(--text-dim)">-- Append-only: REVOKE UPDATE, DELETE ON audit_log FROM aikms_app;</span></pre>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Policy Definition (JSON)</h3>
+        <pre style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow-x:auto;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;line-height:1.7;color:var(--text-muted);">{
+  <span style="color:var(--accent)">&quot;policy_id&quot;</span>: <span style="color:var(--green)">&quot;uuid&quot;</span>,
+  <span style="color:var(--accent)">&quot;name&quot;</span>: <span style="color:var(--green)">&quot;production-crypto-policy&quot;</span>,
+  <span style="color:var(--accent)">&quot;version&quot;</span>: <span style="color:var(--purple)">3</span>,
+  <span style="color:var(--accent)">&quot;rules&quot;</span>: {
+    <span style="color:var(--accent)">&quot;allowed_algorithms&quot;</span>: [<span style="color:var(--green)">&quot;AES-256-GCM&quot;</span>, <span style="color:var(--green)">&quot;RSA-4096&quot;</span>, <span style="color:var(--green)">&quot;ECDSA-P384&quot;</span>],
+    <span style="color:var(--accent)">&quot;min_key_size_bits&quot;</span>: <span style="color:var(--purple)">256</span>,
+    <span style="color:var(--accent)">&quot;max_key_age_days&quot;</span>: <span style="color:var(--purple)">90</span>,
+    <span style="color:var(--accent)">&quot;rotation_interval_days&quot;</span>: <span style="color:var(--purple)">30</span>,
+    <span style="color:var(--accent)">&quot;export_allowed&quot;</span>: <span style="color:var(--red)">false</span>,
+    <span style="color:var(--accent)">&quot;approval_quorum&quot;</span>: { <span style="color:var(--accent)">&quot;required&quot;</span>: <span style="color:var(--purple)">2</span>, <span style="color:var(--accent)">&quot;of&quot;</span>: <span style="color:var(--purple)">3</span> }
+  }
+}</pre>
+
+        <!-- 8.6 API Specification -->
+        <h3 class="subsection" id="ts-api">8.6 API Specification</h3>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Authentication Flows</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client Type</th><th>Flow</th><th>Token Lifetime</th></tr></thead>
+            <tbody>
+              <tr><td>Human user (browser)</td><td>OIDC Authorization Code + PKCE</td><td>Access: 15 min, Refresh: 8 hr</td></tr>
+              <tr><td>Service account (API)</td><td>OAuth 2.0 Client Credentials</td><td>Access: 60 min</td></tr>
+              <tr><td>Service account (zero-trust)</td><td>mTLS cert-bound token</td><td>TLS session lifetime</td></tr>
+              <tr><td>CI/CD pipeline</td><td>Short-lived JWT via OIDC federation</td><td>5 min</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Key Endpoints</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys</code></td><td>Create a new key</td></tr>
+              <tr><td><span class="chip chip-blue">GET</span></td><td><code>/api/v1/keys/{keyId}</code></td><td>Retrieve key metadata</td></tr>
+              <tr><td><span class="chip chip-blue">GET</span></td><td><code>/api/v1/keys</code></td><td>List keys (paginated, filterable)</td></tr>
+              <tr><td><span class="chip chip-orange">PATCH</span></td><td><code>/api/v1/keys/{keyId}</code></td><td>Update key metadata / state</td></tr>
+              <tr><td><span class="chip chip-red">DELETE</span></td><td><code>/api/v1/keys/{keyId}</code></td><td>Schedule key for destruction</td></tr>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys/{keyId}/rotate</code></td><td>Trigger manual rotation</td></tr>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys/{keyId}/encrypt</code></td><td>Encrypt data with key</td></tr>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys/{keyId}/decrypt</code></td><td>Decrypt data with key</td></tr>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys/{keyId}/sign</code></td><td>Sign data with key</td></tr>
+              <tr><td><span class="chip chip-green">POST</span></td><td><code>/api/v1/keys/{keyId}/verify</code></td><td>Verify signature with key</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Standard Error Codes</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>HTTP</th><th>Error Code</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>400</td><td><code>INVALID_ALGORITHM</code></td><td>Requested algorithm is not permitted by policy</td></tr>
+              <tr><td>401</td><td><code>UNAUTHENTICATED</code></td><td>Missing or invalid bearer token / client cert</td></tr>
+              <tr><td>403</td><td><code>POLICY_DENIED</code></td><td>ABAC policy evaluation returned deny</td></tr>
+              <tr><td>404</td><td><code>KEY_NOT_FOUND</code></td><td>Key ID does not exist in caller's namespace</td></tr>
+              <tr><td>409</td><td><code>KEY_STATE_CONFLICT</code></td><td>Operation not permitted in current key state</td></tr>
+              <tr><td>422</td><td><code>KEY_PURPOSE_MISMATCH</code></td><td>Key purpose does not allow requested operation</td></tr>
+              <tr><td>429</td><td><code>RATE_LIMIT_EXCEEDED</code></td><td>Caller has exceeded configured rate limit</td></tr>
+              <tr><td>503</td><td><code>HSM_UNAVAILABLE</code></td><td>Backing HSM is unreachable; operation cannot proceed</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.7 Infrastructure -->
+        <h3 class="subsection" id="ts-infra">8.7 Infrastructure &amp; Deployment</h3>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Minimum Production Cluster (Kubernetes)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Component</th><th>Min Replicas</th><th>CPU Request</th><th>Memory Request</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>API Gateway (Envoy)</td><td>3</td><td>500m</td><td>256 Mi</td><td>Anti-affinity across nodes</td></tr>
+              <tr><td>Key Management Service</td><td>3</td><td>1000m</td><td>512 Mi</td><td>Stateless; scales horizontally</td></tr>
+              <tr><td>AI/ML Engine (Python)</td><td>2</td><td>2000m</td><td>2 Gi</td><td>GPU optional for training</td></tr>
+              <tr><td>Policy Engine (OPA)</td><td>2</td><td>250m</td><td>128 Mi</td><td>Sidecar or standalone</td></tr>
+              <tr><td>Audit Service</td><td>2</td><td>500m</td><td>256 Mi</td><td>Append-only write path</td></tr>
+              <tr><td>Auth &amp; Identity Service</td><td>2</td><td>500m</td><td>256 Mi</td><td>&mdash;</td></tr>
+              <tr><td>Notification Service</td><td>2</td><td>250m</td><td>128 Mi</td><td>&mdash;</td></tr>
+              <tr><td>PostgreSQL (primary + replica)</td><td>2</td><td>2000m</td><td>4 Gi</td><td>Synchronous replication</td></tr>
+              <tr><td>Redis Sentinel</td><td>3</td><td>500m</td><td>1 Gi</td><td>&mdash;</td></tr>
+              <tr><td>Kafka brokers</td><td>3</td><td>2000m</td><td>4 Gi</td><td>Replication factor 3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">HSM Connectivity</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>HSM Product</th><th>Interface</th><th>AIKMS Driver</th></tr></thead>
+            <tbody>
+              <tr><td>Thales Luna Network HSM</td><td>PKCS#11</td><td><code>thales-pkcs11</code> plugin</td></tr>
+              <tr><td>Entrust nShield</td><td>PKCS#11</td><td><code>nshield-pkcs11</code> plugin</td></tr>
+              <tr><td>AWS CloudHSM</td><td>PKCS#11 + JCE</td><td><code>aws-cloudhsm</code> plugin</td></tr>
+              <tr><td>Azure Dedicated HSM</td><td>PKCS#11</td><td><code>azure-dhsm-pkcs11</code> plugin</td></tr>
+              <tr><td>Soft-HSM (dev/test)</td><td>PKCS#11</td><td><code>softhsm2</code> plugin</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8.8 Security Architecture -->
+        <h3 class="subsection" id="ts-sec">8.8 Security Architecture</h3>
+        <div class="callout info">
+          <strong>Zero Trust Model</strong>
+          <p>Every request &mdash; internal or external &mdash; presents a credential and is evaluated against policy. No implicit trust based on network location.</p>
+        </div>
+        <ul class="plain-list">
+          <li><strong>Short-lived credentials:</strong> All service-to-service tokens have a maximum TTL of 60 minutes; HSM session tokens rotate every 15 minutes.</li>
+          <li><strong>Continuous verification:</strong> AI Engine evaluates risk score on each API call; elevated scores trigger additional step-up authentication challenges.</li>
+          <li><strong>Least privilege:</strong> Each microservice has a distinct Kubernetes <code>ServiceAccount</code> mapped to a minimally scoped Vault role.</li>
+        </ul>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">TLS Configuration</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Context</th><th>Protocol</th><th>Cipher Suites</th></tr></thead>
+            <tbody>
+              <tr><td>External (client &#x2194; Gateway)</td><td>TLS 1.3 preferred, TLS 1.2 min</td><td>TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256, ECDHE-RSA-AES256-GCM-SHA384</td></tr>
+              <tr><td>Internal (service &#x2194; service)</td><td>TLS 1.3 (Istio mTLS)</td><td>TLS_AES_256_GCM_SHA384</td></tr>
+              <tr><td>HSM channel</td><td>TLS 1.2+ per vendor</td><td>Vendor-specified; AES-256-GCM minimum</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout danger">
+          TLS 1.0, TLS 1.1, SSLv3, RC4, export ciphers, and anonymous DH are <strong>explicitly disabled</strong> in all Envoy proxy and Java (<code>SSLContext</code>) TLS configurations.
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Container Security</h3>
+        <ul class="plain-list">
+          <li>All container images built from <code>distroless</code> base images to minimize attack surface.</li>
+          <li>Images signed with Sigstore/Cosign; <code>Kyverno</code> admission webhook enforces signature verification before pod scheduling.</li>
+          <li>All containers run as non-root (<code>runAsNonRoot: true</code>), read-only root filesystems, all Linux capabilities dropped.</li>
+          <li>Trivy vulnerability scanning in CI/CD; High or Critical CVEs block image promotion.</li>
+        </ul>
+
+        <!-- 8.9 Performance -->
+        <h3 class="subsection" id="ts-perf">8.9 Performance &amp; Scalability Design</h3>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Caching Strategy</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Cache Layer</th><th>TTL</th><th>Invalidation Trigger</th></tr></thead>
+            <tbody>
+              <tr><td>Key metadata</td><td>Redis (per-namespace)</td><td>60 s</td><td>Key state change event on Kafka</td></tr>
+              <tr><td>ABAC policy decisions</td><td>OPA in-process</td><td>30 s</td><td>Policy version change</td></tr>
+              <tr><td>User session tokens</td><td>Redis</td><td>Session TTL</td><td>Logout / forced expiry</td></tr>
+              <tr><td>Behavioral baseline vectors</td><td>Redis TimeSeries</td><td>Rolling 30 days</td><td>Continuous update</td></tr>
+              <tr><td>Threat intel IP blocklist</td><td>Redis Set</td><td>15 min</td><td>Feed refresh cycle</td></tr>
+              <tr><td>Certificate status (OCSP)</td><td>Redis</td><td>1 hr</td><td>Revocation event</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Auto-Scaling Thresholds</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Service</th><th>Scale-Out Trigger</th><th>Max Replicas</th></tr></thead>
+            <tbody>
+              <tr><td>Key Management Service</td><td>CPU &gt; 70% or p95 latency &gt; 80 ms</td><td>20</td></tr>
+              <tr><td>AI/ML Engine</td><td>Queue depth &gt; 500 events or CPU &gt; 80%</td><td>10</td></tr>
+              <tr><td>API Gateway (Envoy)</td><td>RPS &gt; 5,000 / replica</td><td>10</td></tr>
+              <tr><td>Audit Service</td><td>Kafka consumer lag &gt; 10,000 events</td><td>8</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 class="subsection" style="font-size:13px;color:var(--text-muted);margin-top:16px;">Kafka Topic Configuration</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Topic</th><th>Partitions</th><th>Replication Factor</th><th>Retention</th></tr></thead>
+            <tbody>
+              <tr><td><code>key-usage-events</code></td><td>24</td><td>3</td><td>30 days</td></tr>
+              <tr><td><code>anomaly-events</code></td><td>12</td><td>3</td><td>90 days</td></tr>
+              <tr><td><code>audit-events</code></td><td>12</td><td>3</td><td>7 years (tiered storage)</td></tr>
+              <tr><td><code>rotation-commands</code></td><td>6</td><td>3</td><td>7 days (log compacted)</td></tr>
+              <tr><td><code>notification-dispatch</code></td><td>6</td><td>3</td><td>24 hours</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /section techspec -->
+
+      <!-- ═══════════════════════════════════ SECTION 9 ═══════ -->
+      <div class="section" id="user-stories">
+        <div class="section-header">
+          <span class="section-number">9</span>
+          <h2>User Stories &amp; Acceptance Criteria</h2>
+        </div>
+
+        <h3 class="subsection">9.1 Key Lifecycle</h3>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id purple">US-KLM-001</span> Create a Cryptographic Key</div>
+          <p><strong>As a</strong> Key Operator, <strong>I want to</strong> create a new cryptographic key with a specified algorithm, purpose, and expiry, <strong>so that</strong> my application can use it for encryption without managing raw key material.</p>
+          <ul>
+            <li>Given valid inputs, the API returns HTTP 201 with a <code>key_id</code> (UUID v4) and <code>version = 1</code>.</li>
+            <li>Given a prohibited algorithm (e.g., DES), the API returns HTTP 400 with <code>INVALID_ALGORITHM</code>.</li>
+            <li>Given a key size below the configured minimum, the API returns HTTP 400 with <code>INVALID_KEY_SIZE</code>.</li>
+            <li>The key is created in <code>Pending</code> state and transitions to <code>Active</code> only after successful HSM generation.</li>
+            <li>An audit log entry with <code>action = KEY_CREATE</code> and <code>outcome = SUCCESS</code> is written within 1 second.</li>
+          </ul>
+        </div>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id purple">US-KLM-002</span> Encrypt Data Using a Key</div>
+          <p><strong>As a</strong> Developer (Service Account), <strong>I want to</strong> encrypt a plaintext payload via the API, <strong>so that</strong> my service never handles raw key material.</p>
+          <ul>
+            <li>Given a valid <code>keyId</code> and base64-encoded plaintext, the API returns HTTP 200 with ciphertext and the <code>key_version</code> used.</li>
+            <li>Given a key in <code>Suspended</code> or <code>Destroyed</code> state, the API returns HTTP 409 <code>KEY_STATE_CONFLICT</code>.</li>
+            <li>Raw key material is never present in the API response.</li>
+            <li>Rate limit is enforced per caller; HTTP 429 is returned when exceeded.</li>
+          </ul>
+        </div>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id purple">US-KLM-003</span> Retire and Destroy a Key</div>
+          <p><strong>As a</strong> Security Admin, <strong>I want to</strong> schedule a key for destruction with dual-control approval, <strong>so that</strong> sensitive key material is securely erased.</p>
+          <ul>
+            <li>A single admin cannot move a key to <code>Scheduled for Destruction</code> — a second admin approval is required.</li>
+            <li>After scheduling, the key enters a configurable cooling-off period (default 7 days).</li>
+            <li>During the cooling-off period, destruction can be cancelled by an authorized admin.</li>
+            <li>A destruction certificate entry is written to the audit log.</li>
+          </ul>
+        </div>
+
+        <h3 class="subsection">9.2 AI &amp; Anomaly Detection</h3>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id orange">US-AI-001</span> View Anomaly Alerts</div>
+          <p><strong>As a</strong> Security Admin, <strong>I want to</strong> see real-time anomaly alerts with risk scores and explanations.</p>
+          <ul>
+            <li>Dashboard displays all anomaly events with score, timestamp, caller, and anomaly category.</li>
+            <li>Anomaly events are surfaced within 5 seconds of detection.</li>
+            <li>Each alert links to the affected key, caller identity, and contributing factor breakdown.</li>
+          </ul>
+        </div>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id orange">US-AI-002</span> Accept or Dismiss AI Rotation Recommendation</div>
+          <p><strong>As a</strong> Security Admin, <strong>I want to</strong> accept or dismiss AI-generated rotation recommendations, <strong>so that</strong> I have final control while benefiting from AI insight.</p>
+          <ul>
+            <li>Accepting a recommendation immediately triggers the zero-downtime rotation workflow.</li>
+            <li>Dismissing requires a written justification (minimum 20 characters).</li>
+            <li>Deferred recommendations re-surface after a configurable reminder interval (default 24 hours).</li>
+          </ul>
+        </div>
+
+        <h3 class="subsection">9.3 Access Control</h3>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id blue">US-AC-001</span> Log In with SSO and MFA</div>
+          <p><strong>As a</strong> Security Admin, <strong>I want to</strong> authenticate via enterprise SSO (OIDC) with FIDO2 MFA.</p>
+          <ul>
+            <li>Login page redirects to the configured OIDC IdP.</li>
+            <li>After IdP authentication, FIDO2/WebAuthn challenge is presented before dashboard access.</li>
+            <li>Session expires after 30 minutes of inactivity and requires re-authentication.</li>
+          </ul>
+        </div>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id blue">US-AC-002</span> Service Account API Access</div>
+          <p><strong>As a</strong> Developer, <strong>I want to</strong> authenticate my service using OAuth 2.0 Client Credentials.</p>
+          <ul>
+            <li>A valid <code>client_id + client_secret</code> exchange returns a Bearer token (TTL 60 min).</li>
+            <li>Token is scoped to the namespaces and operations permitted by the ABAC policy.</li>
+            <li>mTLS client certificate authentication is an alternative to client secret.</li>
+          </ul>
+        </div>
+
+        <h3 class="subsection">9.4 Compliance &amp; Audit</h3>
+
+        <div class="fr-card">
+          <div class="fr-card-header"><span class="fr-id green">US-AUDIT-001</span> Generate a PCI-DSS Compliance Report</div>
+          <p><strong>As an</strong> Auditor, <strong>I want to</strong> generate a PCI-DSS compliance report for a specific date range for QSA evidence.</p>
+          <ul>
+            <li>Report includes all key lifecycle events, policy changes, access control changes, and failed authentication attempts.</li>
+            <li>Exportable as PDF and CSV.</li>
+            <li>Report generation completes within 60 seconds for a 12-month range.</li>
+            <li>Only users with the <code>Auditor</code> role can generate compliance reports.</li>
+          </ul>
+        </div>
+      </div><!-- /section user-stories -->
+
+      <!-- ═══════════════════════════════════ SECTION 10 ══════ -->
+      <div class="section" id="state-machine">
+        <div class="section-header">
+          <span class="section-number">10</span>
+          <h2>Key Lifecycle State Machine</h2>
+        </div>
+
+        <h3 class="subsection">10.1 Key States</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>State</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>PENDING</code></td><td>Key material is being generated; not yet usable</td></tr>
+              <tr><td><code>ACTIVE</code></td><td>Key is fully operational for all permitted purposes</td></tr>
+              <tr><td><code>SUSPENDED</code></td><td>Temporarily disabled; operations blocked but material retained</td></tr>
+              <tr><td><code>DEPRECATED</code></td><td>Superseded by a new version; decryption allowed, encryption blocked</td></tr>
+              <tr><td><code>SCHEDULED_DESTROY</code></td><td>Destruction approved; cooling-off period in progress</td></tr>
+              <tr><td><code>DESTROYED</code></td><td>Key material cryptographically overwritten; record retained for audit</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">10.2 State Transition Table</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>From State</th><th>Trigger</th><th>To State</th><th>Who Can Trigger</th><th>Side Effects</th></tr></thead>
+            <tbody>
+              <tr><td><em>(new)</em></td><td>Key generation complete</td><td><code>PENDING → ACTIVE</code></td><td>System (KMS)</td><td>Kafka <code>KEY_CREATED</code>; audit entry</td></tr>
+              <tr><td><code>ACTIVE</code></td><td>Admin suspends key</td><td><code>ACTIVE → SUSPENDED</code></td><td>Security Admin</td><td>Kafka <code>KEY_SUSPENDED</code>; cache invalidated</td></tr>
+              <tr><td><code>ACTIVE</code></td><td>Rotation triggered</td><td><code>ACTIVE → DEPRECATED</code></td><td>System / Admin</td><td>New version created as ACTIVE; consumers notified</td></tr>
+              <tr><td><code>ACTIVE</code></td><td>Dual-control approval</td><td><code>ACTIVE → SCHEDULED_DESTROY</code></td><td>2× Security Admins</td><td>Cooling-off timer started; Kafka event emitted</td></tr>
+              <tr><td><code>SUSPENDED</code></td><td>Admin re-enables</td><td><code>SUSPENDED → ACTIVE</code></td><td>Security Admin</td><td>Kafka <code>KEY_RESUMED</code>; cache updated</td></tr>
+              <tr><td><code>DEPRECATED</code></td><td>All consumers migrated OR grace period expires</td><td><code>DEPRECATED → SCHEDULED_DESTROY</code></td><td>System</td><td>Kafka <code>KEY_DEPRECATION_COMPLETE</code></td></tr>
+              <tr><td><code>SCHEDULED_DESTROY</code></td><td>Admin cancels during cooling-off</td><td><code>SCHEDULED_DESTROY → SUSPENDED</code></td><td>Security Admin</td><td>Cooling-off timer cancelled</td></tr>
+              <tr><td><code>SCHEDULED_DESTROY</code></td><td>Cooling-off period elapses</td><td><code>SCHEDULED_DESTROY → DESTROYED</code></td><td>System (scheduler)</td><td>Material overwritten; destruction certificate in audit</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Dual-Control Rule:</strong> Any transition into <code>SCHEDULED_DESTROY</code> requires two distinct Security Admin identities recorded as approvers. <code>DESTROYED</code> is a terminal state — no transitions out are permitted.
+        </div>
+      </div><!-- /section state-machine -->
+
+      <!-- ═══════════════════════════════════ SECTION 11 ══════ -->
+      <div class="section" id="seq-diagrams">
+        <div class="section-header">
+          <span class="section-number">11</span>
+          <h2>Critical Flow Sequence Diagrams</h2>
+        </div>
+
+        <h3 class="subsection">11.1 Key Creation (HSM-Backed)</h3>
+        <pre>Client        API Gateway    KMS Service    Policy Engine    HSM             Audit Service
+  |                |               |                |              |                   |
+  |--POST /keys--->|               |                |              |                   |
+  |                |--Validate JWT->               |              |                   |
+  |                |               |--Evaluate ABAC->             |                   |
+  |                |               |<--ALLOW---------|             |                   |
+  |                |               |--Generate Key---------------------->|            |
+  |                |               |<--Key Handle (no material)---------|            |
+  |                |               |--Write key metadata (PostgreSQL)                |
+  |                |               |--Publish KEY_CREATED (Kafka)------------------>|
+  |                |<--201 key_id--|               |              |                   |
+  |<--201 key_id---|               |                |              |                   |</pre>
+
+        <h3 class="subsection">11.2 Zero-Downtime Key Rotation</h3>
+        <pre>Scheduler/Admin   KMS Service       Consumer Registry    Consumers (N)    Audit Service
+      |                 |                    |                    |                 |
+      |--Trigger Rotate->|                   |                    |                 |
+      |                 |--Create new version (v+1) in HSM                          |
+      |                 |--Deprecate old version (vN → DEPRECATED)                 |
+      |                 |--Publish ROTATION_STARTED (Kafka)-------->|              |
+      |                 |                    |<--Fetch consumers--->|              |
+      |                 |                    |--Notify each consumer (push/pull)-->|
+      |                 |                    |<--Consumer ACK (per consumer)-------|
+      |   [All ACKed OR grace period elapsed]                                       |
+      |                 |--Retire old version → SCHEDULED_DESTROY                  |
+      |                 |--Publish ROTATION_COMPLETE (Kafka)--------------------> |</pre>
+
+        <h3 class="subsection">11.3 Anomaly Detection → AI Rotation Recommendation</h3>
+        <pre>App/Service   Kafka          AI Engine        Risk Engine     KMS Service    Admin (UI)
+     |            |                |                  |               |             |
+     |--Key op---->|               |                  |               |             |
+     |            |--usage-event-->|                  |               |             |
+     |            |               |--Score (Isolation Forest + LSTM)  |             |
+     |            |               |--Anomaly score = 87               |             |
+     |            |               |--Publish ANOMALY_DETECTED-------->|            |
+     |            |               |                  |--Recompute Key Risk Score    |
+     |            |               |                  | (risk_score → 92)            |
+     |            |               |                  |--Publish KEY_RISK_UPDATED--->|
+     |            |               |                  |               |--Notify Admin->|
+     |            |               |                  |               |    [Admin accepts]
+     |            |               |                  |               |<--POST /rotate
+     |            |               |                  |               |--Trigger rotation</pre>
+
+        <h3 class="subsection">11.4 Dual-Control Key Destruction</h3>
+        <pre>Admin A          KMS Service       Approval Service     Admin B      Audit Service
+   |                  |                    |                  |               |
+   |--POST /destroy-->|                    |                  |               |
+   |                  |--Create ApprovalRequest (quorum 2/2)->|               |
+   |                  |                    |--Notify Admin B (email + UI)---->|
+   |                  |                    |<--Admin B approves---------------|
+   |                  |--2/2 approvals met                    |               |
+   |                  |--Transition: ACTIVE → SCHEDULED_DESTROY               |
+   |                  |--Start cooling-off timer (7 days)      |               |
+   [7 days elapse, no cancellation]
+   |                  |--Crypto-overwrite all key material in HSM             |
+   |                  |--Transition: SCHEDULED_DESTROY → DESTROYED            |
+   |                  |--Write destruction certificate to audit log---------->|</pre>
+      </div><!-- /section seq-diagrams -->
+
+      <!-- ═══════════════════════════════════ SECTION 12 ══════ -->
+      <div class="section" id="db-schema">
+        <div class="section-header">
+          <span class="section-number">12</span>
+          <h2>Complete Database Schema</h2>
+        </div>
+
+        <h3 class="subsection">12.1 Core Tables</h3>
+        <pre>-- Namespaces (tenant/project isolation units)
+CREATE TABLE namespaces (
+  namespace_id     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             TEXT NOT NULL UNIQUE,
+  parent_id        UUID REFERENCES namespaces(namespace_id),
+  description      TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by       UUID,
+  is_active        BOOLEAN NOT NULL DEFAULT true
+);
+
+-- Identities (humans and service accounts)
+CREATE TABLE identities (
+  identity_id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  external_id      TEXT UNIQUE,
+  identity_type    TEXT NOT NULL,  -- HUMAN | SERVICE_ACCOUNT | AI_ENGINE
+  name             TEXT NOT NULL,
+  email            TEXT,
+  role             TEXT NOT NULL,  -- SUPER_ADMIN | SECURITY_ADMIN | KEY_OPERATOR | AUDITOR | DEVELOPER
+  namespace_id     UUID REFERENCES namespaces(namespace_id),
+  is_active        BOOLEAN NOT NULL DEFAULT true,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at    TIMESTAMPTZ,
+  mfa_enrolled     BOOLEAN NOT NULL DEFAULT false
+);
+
+-- Sessions
+CREATE TABLE sessions (
+  session_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  identity_id      UUID NOT NULL REFERENCES identities(identity_id),
+  issued_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at       TIMESTAMPTZ NOT NULL,
+  last_active_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  source_ip        INET,
+  user_agent       TEXT,
+  is_revoked       BOOLEAN NOT NULL DEFAULT false,
+  revoked_reason   TEXT
+);
+CREATE INDEX idx_sessions_identity ON sessions(identity_id) WHERE NOT is_revoked;</pre>
+
+        <h3 class="subsection">12.2 Key Tables (Extended)</h3>
+        <pre>-- Approval requests (dual-control)
+CREATE TABLE approval_requests (
+  request_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  resource_type    TEXT NOT NULL,       -- KEY | POLICY | SECRET
+  resource_id      UUID NOT NULL,
+  operation        TEXT NOT NULL,       -- DESTROY | EXPORT | POLICY_CHANGE
+  requested_by     UUID NOT NULL REFERENCES identities(identity_id),
+  requested_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  required_quorum  INTEGER NOT NULL,
+  status           TEXT NOT NULL DEFAULT 'PENDING',
+  expires_at       TIMESTAMPTZ,
+  external_ticket  TEXT
+);
+
+CREATE TABLE approval_votes (
+  vote_id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id       UUID NOT NULL REFERENCES approval_requests(request_id),
+  approver_id      UUID NOT NULL REFERENCES identities(identity_id),
+  decision         TEXT NOT NULL,       -- APPROVE | REJECT
+  comment          TEXT,
+  voted_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (request_id, approver_id)
+);</pre>
+
+        <h3 class="subsection">12.3 Policy Tables</h3>
+        <pre>CREATE TABLE policies (
+  policy_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             TEXT NOT NULL,
+  namespace_id     UUID REFERENCES namespaces(namespace_id),
+  current_version  INTEGER NOT NULL DEFAULT 1,
+  created_by       UUID NOT NULL REFERENCES identities(identity_id),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  is_active        BOOLEAN NOT NULL DEFAULT true
+);
+
+CREATE TABLE policy_versions (
+  version_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  policy_id        UUID NOT NULL REFERENCES policies(policy_id),
+  version_number   INTEGER NOT NULL,
+  rules            JSONB NOT NULL,
+  created_by       UUID NOT NULL REFERENCES identities(identity_id),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  effective_from   TIMESTAMPTZ,
+  supersedes       UUID REFERENCES policy_versions(version_id),
+  UNIQUE (policy_id, version_number)
+);
+
+CREATE TABLE rotation_policies (
+  rotation_policy_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace_id             UUID REFERENCES namespaces(namespace_id),
+  applies_to_algorithm     TEXT,
+  rotation_interval_days   INTEGER,
+  max_usage_count          BIGINT,
+  anomaly_score_threshold  NUMERIC(5,2),
+  notify_lead_days         INTEGER NOT NULL DEFAULT 14,
+  created_at               TIMESTAMPTZ NOT NULL DEFAULT now()
+);</pre>
+
+        <h3 class="subsection">12.4 Secrets, Certificates &amp; SSH Keys</h3>
+        <pre>CREATE TABLE secrets (
+  secret_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             TEXT NOT NULL,
+  namespace_id     UUID NOT NULL REFERENCES namespaces(namespace_id),
+  secret_type      TEXT NOT NULL,       -- STATIC | DYNAMIC
+  backend_type     TEXT,
+  current_version  INTEGER NOT NULL DEFAULT 1,
+  lease_ttl_seconds INTEGER,
+  state            TEXT NOT NULL DEFAULT 'ACTIVE',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by       UUID NOT NULL REFERENCES identities(identity_id),
+  UNIQUE (name, namespace_id)
+);
+
+CREATE TABLE certificates (
+  certificate_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace_id     UUID NOT NULL REFERENCES namespaces(namespace_id),
+  common_name      TEXT NOT NULL,
+  not_before       TIMESTAMPTZ NOT NULL,
+  not_after        TIMESTAMPTZ NOT NULL,
+  pem_certificate  TEXT NOT NULL,       -- stored encrypted at rest
+  status           TEXT NOT NULL DEFAULT 'ACTIVE',
+  renewal_source   TEXT,               -- ACME | INTERNAL_PKI | MANUAL
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_certs_expiry ON certificates(not_after) WHERE status = 'ACTIVE';
+
+CREATE TABLE ssh_keys (
+  ssh_key_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  namespace_id     UUID NOT NULL REFERENCES namespaces(namespace_id),
+  name             TEXT NOT NULL,
+  key_type         TEXT NOT NULL DEFAULT 'ED25519',
+  public_key       TEXT NOT NULL,
+  fingerprint      TEXT NOT NULL UNIQUE,
+  signed_cert      TEXT,
+  state            TEXT NOT NULL DEFAULT 'ACTIVE',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);</pre>
+
+        <h3 class="subsection">12.5 AI/ML &amp; Anomaly Tables</h3>
+        <pre>CREATE TABLE ai_models (
+  model_id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  model_type       TEXT NOT NULL,  -- ANOMALY_DETECTOR | COMPROMISE_CLASSIFIER | POLICY_REC
+  version          TEXT NOT NULL,
+  mlflow_run_id    TEXT,
+  precision_score  NUMERIC(5,4),
+  recall_score     NUMERIC(5,4),
+  f1_score         NUMERIC(5,4),
+  training_date    TIMESTAMPTZ NOT NULL,
+  promoted_at      TIMESTAMPTZ,
+  is_production    BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE TABLE anomaly_events (
+  anomaly_id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key_id           UUID REFERENCES keys(key_id),
+  caller_id        UUID REFERENCES identities(identity_id),
+  anomaly_score    NUMERIC(5,2) NOT NULL,
+  anomaly_types    TEXT[] NOT NULL,
+  model_id         UUID REFERENCES ai_models(model_id),
+  detected_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  status           TEXT NOT NULL DEFAULT 'OPEN',
+  feedback         TEXT
+);
+CREATE INDEX idx_anomaly_status ON anomaly_events(status) WHERE status = 'OPEN';</pre>
+
+        <div class="callout callout-info">
+          <strong>Schema Conventions:</strong> UUID v4 PKs, all timestamps as TIMESTAMPTZ, no hard deletes (use <code>state</code>/<code>is_active</code>), all namespace-scoped tables enforce PostgreSQL Row-Level Security (RLS). Migrations managed by Flyway at <code>db/migration/V{n}__{description}.sql</code>.
+        </div>
+      </div><!-- /section db-schema -->
+
+      <!-- ═══════════════════════════════════ SECTION 13 ══════ -->
+      <div class="section" id="api-contract">
+        <div class="section-header">
+          <span class="section-number">13</span>
+          <h2>API Contract Reference</h2>
+        </div>
+
+        <h3 class="subsection">13.1 Global Request Headers</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Header</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>Authorization</code></td><td>Yes</td><td><code>Bearer &lt;access_token&gt;</code> or omitted for mTLS</td></tr>
+              <tr><td><code>X-Namespace-ID</code></td><td>Yes (human users)</td><td>Target namespace UUID</td></tr>
+              <tr><td><code>X-Request-ID</code></td><td>Recommended</td><td>Client-generated UUID for distributed tracing (echoed in response)</td></tr>
+              <tr><td><code>Idempotency-Key</code></td><td>Required for POST</td><td>UUID to ensure at-most-once semantics for mutating operations</td></tr>
+              <tr><td><code>Content-Type</code></td><td>Yes</td><td><code>application/json</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">13.2 Key Object Schema</h3>
+        <pre>{
+  "keyId": "uuid",
+  "name": "string (3–128 chars)",
+  "namespaceId": "uuid",
+  "algorithm": "AES-256-GCM | RSA-4096 | ECDSA-P384 | Ed25519 | HMAC-SHA256",
+  "keySizeBits": 256,
+  "purpose": ["ENCRYPT", "DECRYPT"],
+  "state": "PENDING | ACTIVE | SUSPENDED | DEPRECATED | SCHEDULED_DESTROY | DESTROYED",
+  "currentVersion": 1,
+  "riskScore": 12.5,
+  "hsmBacked": true,
+  "expiresAt": "ISO-8601 | null",
+  "createdAt": "ISO-8601",
+  "createdBy": "uuid",
+  "tags": { "env": "production", "team": "platform" },
+  "rotationPolicyId": "uuid | null"
+}</pre>
+
+        <h3 class="subsection">13.3 Crypto Operation Payloads</h3>
+        <pre>// Encrypt Request
+{ "plaintext": "&lt;base64&gt;", "aad": "&lt;base64 optional&gt;", "keyVersion": null }
+
+// Encrypt Response
+{ "ciphertext": "&lt;base64&gt;", "iv": "&lt;base64&gt;", "tag": "&lt;base64&gt;",
+  "keyId": "uuid", "keyVersion": 3, "algorithm": "AES-256-GCM" }
+
+// Decrypt Request
+{ "ciphertext": "&lt;base64&gt;", "iv": "&lt;base64&gt;", "tag": "&lt;base64&gt;",
+  "aad": "&lt;optional&gt;", "keyVersion": 3 }
+
+// Sign Request
+{ "message": "&lt;base64&gt;", "signingAlgorithm": "SHA256withECDSA" }
+
+// Sign Response
+{ "signature": "&lt;base64&gt;", "keyId": "uuid", "keyVersion": 2,
+  "signingAlgorithm": "SHA256withECDSA" }</pre>
+
+        <h3 class="subsection">13.4 Pagination</h3>
+        <p>All list endpoints support: <code>page</code> (default 0), <code>size</code> (default 20, max 100), <code>sort</code> (default <code>createdAt,desc</code>), <code>filter</code> (field-specific, e.g., <code>state=ACTIVE</code>).</p>
+        <pre>{
+  "data": [ ...items... ],
+  "pagination": { "page": 0, "size": 20, "totalElements": 847, "totalPages": 43 }
+}</pre>
+      </div><!-- /section api-contract -->
+
+      <!-- ═══════════════════════════════════ SECTION 14 ══════ -->
+      <div class="section" id="env-config">
+        <div class="section-header">
+          <span class="section-number">14</span>
+          <h2>Environment &amp; Configuration Reference</h2>
+        </div>
+
+        <h3 class="subsection">14.1 KMS Service Properties</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Property / Env Variable</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>KMS_DB_URL</code></td><td>—</td><td>PostgreSQL JDBC URL</td></tr>
+              <tr><td><code>HSM_PROVIDER</code></td><td><code>SOFTHSM</code></td><td><code>THALES | ENTRUST | AWS_CLOUDHSM | SOFTHSM</code></td></tr>
+              <tr><td><code>HSM_SLOT_PIN</code></td><td>—</td><td>HSM slot PIN (from Vault)</td></tr>
+              <tr><td><code>KEK_NAMESPACE</code></td><td>—</td><td>Cloud KMS key resource for master KEK</td></tr>
+              <tr><td><code>MIN_AES_KEY_SIZE</code></td><td><code>128</code></td><td>Minimum AES key size bits</td></tr>
+              <tr><td><code>MIN_RSA_KEY_SIZE</code></td><td><code>2048</code></td><td>Minimum RSA key size bits</td></tr>
+              <tr><td><code>KEY_COOLING_OFF_DAYS</code></td><td><code>7</code></td><td>Cooling-off period before destruction</td></tr>
+              <tr><td><code>DEFAULT_RATE_LIMIT_RPS</code></td><td><code>100</code></td><td>Default requests/sec per client</td></tr>
+              <tr><td><code>REDIS_HOST</code></td><td><code>redis</code></td><td>Redis hostname</td></tr>
+              <tr><td><code>KAFKA_BROKERS</code></td><td>—</td><td>Kafka broker list</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">14.2 AI/ML Engine Properties</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Env Variable</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>ANOMALY_SCORE_THRESHOLD</code></td><td><code>70</code></td><td>Score above which events are escalated</td></tr>
+              <tr><td><code>BASELINE_WINDOW_DAYS</code></td><td><code>30</code></td><td>Rolling window for behavioral baseline</td></tr>
+              <tr><td><code>RETRAIN_SCHEDULE_CRON</code></td><td><code>0 2 * * 0</code></td><td>Weekly retraining schedule (UTC)</td></tr>
+              <tr><td><code>MLFLOW_TRACKING_URI</code></td><td>—</td><td>MLflow server URL</td></tr>
+              <tr><td><code>MODEL_REGISTRY_PATH</code></td><td><code>/models</code></td><td>Local path to ONNX model artifacts</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">14.3 Auth Service Properties</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Env Variable</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>OIDC_ISSUER_URI</code></td><td>—</td><td>OIDC provider issuer URL (e.g., Okta, Azure AD)</td></tr>
+              <tr><td><code>JWT_ACCESS_TOKEN_TTL_SECONDS</code></td><td><code>900</code></td><td>Access token TTL (15 min)</td></tr>
+              <tr><td><code>JWT_REFRESH_TOKEN_TTL_SECONDS</code></td><td><code>28800</code></td><td>Refresh token TTL (8 hr)</td></tr>
+              <tr><td><code>SESSION_INACTIVITY_TIMEOUT_SECONDS</code></td><td><code>1800</code></td><td>Session idle timeout (30 min)</td></tr>
+              <tr><td><code>MFA_REQUIRED_ROLES</code></td><td><code>SUPER_ADMIN,SECURITY_ADMIN</code></td><td>Roles requiring MFA</td></tr>
+              <tr><td><code>SCIM_ENABLED</code></td><td><code>true</code></td><td>Enable SCIM 2.0 provisioning endpoint</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">14.4 Common Variables (All Services)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Env Variable</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>ENVIRONMENT</code></td><td><code>development | staging | production</code></td></tr>
+              <tr><td><code>LOG_LEVEL</code></td><td><code>DEBUG | INFO | WARN | ERROR</code> (default: INFO)</td></tr>
+              <tr><td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td><td>OpenTelemetry collector endpoint</td></tr>
+              <tr><td><code>VAULT_ADDR</code></td><td>HashiCorp Vault address</td></tr>
+              <tr><td><code>VAULT_ROLE_ID</code></td><td>Vault AppRole role ID</td></tr>
+              <tr><td><code>VAULT_SECRET_ID</code></td><td>Vault AppRole secret ID (injected by CSI driver)</td></tr>
+              <tr><td><code>TLS_CERT_PATH</code></td><td>Path to service TLS certificate</td></tr>
+              <tr><td><code>TLS_KEY_PATH</code></td><td>Path to service TLS private key</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /section env-config -->
+
+      <!-- ═══════════════════════════════════ SECTION 15 ══════ -->
+      <div class="section" id="resilience">
+        <div class="section-header">
+          <span class="section-number">15</span>
+          <h2>Error Handling &amp; Resilience</h2>
+        </div>
+
+        <h3 class="subsection">15.1 Retry Policies (Resilience4j)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Max Attempts</th><th>Initial Backoff</th><th>Max Backoff</th><th>Retryable Conditions</th></tr></thead>
+            <tbody>
+              <tr><td>HSM key generation</td><td>3</td><td>500 ms</td><td>5 s</td><td><code>HSM_TIMEOUT</code>, <code>HSM_BUSY</code></td></tr>
+              <tr><td>PostgreSQL write</td><td>3</td><td>100 ms</td><td>2 s</td><td><code>CONNECTION_TIMEOUT</code>, transient deadlock</td></tr>
+              <tr><td>Redis read</td><td>2</td><td>50 ms</td><td>500 ms</td><td><code>CONNECTION_REFUSED</code>, timeout</td></tr>
+              <tr><td>Kafka publish (audit event)</td><td>5</td><td>200 ms</td><td>10 s</td><td>Any exception</td></tr>
+              <tr><td>External threat intel feed</td><td>2</td><td>1 s</td><td>10 s</td><td>HTTP 5xx, timeout</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-warning">
+          <strong>Non-retryable:</strong> <code>POLICY_DENIED</code>, <code>KEY_PURPOSE_MISMATCH</code>, <code>KEY_STATE_CONFLICT</code>, <code>INVALID_ALGORITHM</code> — retrying will not resolve these errors.
+        </div>
+
+        <h3 class="subsection">15.2 Circuit Breakers (Resilience4j)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Resource</th><th>Failure Rate Threshold</th><th>Slow Call Threshold</th><th>Wait Duration (Open)</th><th>Half-Open Max Calls</th></tr></thead>
+            <tbody>
+              <tr><td>HSM</td><td>50%</td><td>&gt; 2 s</td><td>30 s</td><td>3</td></tr>
+              <tr><td>PostgreSQL</td><td>60%</td><td>&gt; 1 s</td><td>15 s</td><td>5</td></tr>
+              <tr><td>AI/ML Engine</td><td>70%</td><td>&gt; 600 ms</td><td>20 s</td><td>3</td></tr>
+              <tr><td>External threat intel</td><td>80%</td><td>&gt; 5 s</td><td>60 s</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">15.3 Idempotency</h3>
+        <p>All <code>POST</code> endpoints require an <code>Idempotency-Key</code> header (UUID). Records are stored in Redis for 24 hours. A repeated request with the same key returns the original response. <code>409 Conflict</code> is returned if the same key is submitted with a different request body.</p>
+
+        <h3 class="subsection">15.4 Fallback Behaviour Summary</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Scenario</th><th>Impact</th><th>Fallback</th></tr></thead>
+            <tbody>
+              <tr><td>HSM unreachable</td><td>Cannot encrypt/decrypt/sign</td><td>Return 503; block operations</td></tr>
+              <tr><td>PostgreSQL primary fails</td><td>Metadata writes blocked</td><td>Automatic failover to replica (Patroni); ~30 s recovery</td></tr>
+              <tr><td>Redis unavailable</td><td>Cache miss on all requests</td><td>Fall through to PostgreSQL; latency increases</td></tr>
+              <tr><td>Kafka unavailable</td><td>Audit events not delivered</td><td>Buffer in local in-memory queue (max 10,000); flush on reconnect</td></tr>
+              <tr><td>AI Engine down</td><td>No anomaly scoring</td><td>Pass-through mode; all events logged without score; alert ops</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /section resilience -->
+
+      <!-- ═══════════════════════════════════ SECTION 16 ══════ -->
+      <div class="section" id="multitenancy">
+        <div class="section-header">
+          <span class="section-number">16</span>
+          <h2>Multi-Tenancy &amp; Namespace Isolation</h2>
+        </div>
+
+        <h3 class="subsection">16.1 Isolation Model</h3>
+        <p>AIKMS uses <strong>namespace-based logical multi-tenancy</strong> within a single deployment. Isolation is enforced through three complementary mechanisms:</p>
+        <ol>
+          <li><strong>Application-layer enforcement:</strong> All service queries include <code>namespace_id = ?</code> filters derived from the JWT namespace claim.</li>
+          <li><strong>PostgreSQL Row-Level Security (RLS):</strong> All namespace-scoped tables enforce RLS policies that verify <code>current_setting('app.current_namespace_id')</code> matches the row's <code>namespace_id</code>.</li>
+          <li><strong>ABAC policies:</strong> Deny-by-default; explicit allow required for cross-namespace operations.</li>
+        </ol>
+
+        <h3 class="subsection">16.2 RLS Configuration</h3>
+        <pre>-- Enable RLS on all namespace-scoped tables
+ALTER TABLE keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE secrets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+
+-- Policy: app role can only see rows in its current namespace
+CREATE POLICY namespace_isolation ON keys
+  USING (namespace_id::TEXT = current_setting('app.current_namespace_id', true));
+
+-- Spring sets the namespace before each query:
+-- SET LOCAL app.current_namespace_id = '&lt;uuid&gt;';</pre>
+
+        <h3 class="subsection">16.3 Cross-Namespace Rules</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Cross-Namespace Permitted</th><th>Who Can Authorize</th></tr></thead>
+            <tbody>
+              <tr><td>Read key metadata from another namespace</td><td>No</td><td>N/A</td></tr>
+              <tr><td>Rotate a key in another namespace</td><td>No</td><td>N/A</td></tr>
+              <tr><td>View audit logs across all namespaces</td><td>Yes (read-only)</td><td>Super Admin</td></tr>
+              <tr><td>Apply a global policy to all namespaces</td><td>Yes</td><td>Super Admin</td></tr>
+              <tr><td>Generate system-wide compliance report</td><td>Yes (read-only)</td><td>Auditor (Super Admin grants)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">16.4 Namespace Hierarchy &amp; Policy Inheritance</h3>
+        <pre>root (global policies)
+  └── org-platform/
+        ├── platform-prod/    ← inherits org-platform policies
+        └── platform-staging/ ← inherits org-platform policies, overrides rotation interval
+  └── org-payments/
+        └── payments-prod/    ← inherits org-payments policies</pre>
+        <p>Policy conflict resolution: most-specific namespace policy wins; global policy is the fallback. A namespace cannot grant permissions that its parent does not have.</p>
+      </div><!-- /section multitenancy -->
+
+      <!-- ═══════════════════════════════════ SECTION 17 ══════ -->
+      <div class="section" id="testing">
+        <div class="section-header">
+          <span class="section-number">17</span>
+          <h2>Testing Strategy</h2>
+        </div>
+
+        <h3 class="subsection">17.1 Test Pyramid</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Tool</th><th>Coverage Target</th><th>Scope</th></tr></thead>
+            <tbody>
+              <tr><td>Unit tests</td><td>JUnit 5 + Mockito</td><td>≥ 80% line coverage</td><td>Business logic, state machine, crypto utilities</td></tr>
+              <tr><td>Integration tests</td><td>Spring Boot Test + Testcontainers</td><td>All repository/service layer paths</td><td>PostgreSQL, Redis, Kafka, Vault (local)</td></tr>
+              <tr><td>Contract tests</td><td>Spring Cloud Contract / Pact</td><td>All gRPC + REST inter-service contracts</td><td>KMS ↔ AI Engine, KMS ↔ Audit, KMS ↔ Policy Engine</td></tr>
+              <tr><td>API tests</td><td>REST-assured + Newman</td><td>All endpoints (happy path + error paths)</td><td>Full Spring context with Testcontainers</td></tr>
+              <tr><td>Security tests</td><td>OWASP ZAP (DAST) + Trivy (SCA)</td><td>All public API endpoints</td><td>Staging environment</td></tr>
+              <tr><td>Load tests</td><td>k6</td><td>p99 latency per NFR targets</td><td>Key retrieval, encrypt/decrypt, list endpoints</td></tr>
+              <tr><td>Chaos tests</td><td>Chaos Monkey for Spring Boot</td><td>HA and resilience requirements</td><td>PostgreSQL failover, Redis outage, HSM disconnection</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection">17.2 Key Test Scenarios</h3>
+        <ul>
+          <li>AES-256-GCM encrypt → decrypt round-trip produces identical plaintext.</li>
+          <li>Encryption with a <code>SUSPENDED</code> key returns HTTP 409.</li>
+          <li>Decryption with the correct <code>key_version</code> succeeds after rotation.</li>
+          <li>Dual-control destruction requires exactly 2 distinct approvers; single approver vote returns HTTP 403.</li>
+          <li>A Developer service account in namespace A cannot read keys from namespace B.</li>
+          <li>Rate limit exceeded returns HTTP 429 with <code>Retry-After</code> header.</li>
+          <li>Injecting 10× normal operation volume triggers a volumetric anomaly event within 500 ms.</li>
+          <li>Audit events buffered during Kafka outage are flushed on reconnection without duplicates.</li>
+        </ul>
+
+        <h3 class="subsection">17.3 CI/CD Test Gates</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Gate</th><th>Blocking</th><th>Pipeline Stage</th></tr></thead>
+            <tbody>
+              <tr><td>Unit tests pass (all)</td><td>Yes</td><td>PR build</td></tr>
+              <tr><td>Code coverage ≥ 80%</td><td>Yes</td><td>PR build</td></tr>
+              <tr><td>Integration tests pass</td><td>Yes</td><td>PR build</td></tr>
+              <tr><td>Contract tests pass</td><td>Yes</td><td>PR build</td></tr>
+              <tr><td>Trivy: no Critical CVEs</td><td>Yes</td><td>Image build</td></tr>
+              <tr><td>OWASP ZAP: no High findings</td><td>Yes</td><td>Staging deploy</td></tr>
+              <tr><td>Load test p99 ≤ thresholds</td><td>Yes</td><td>Pre-production deploy</td></tr>
+              <tr><td>Chaos tests pass</td><td>No (advisory)</td><td>Staging weekly</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /section testing -->
+
+      <!-- ═══════════════════════════════════ SECTION 18 ══════ -->
+      <div class="section" id="runbooks">
+        <div class="section-header">
+          <span class="section-number">18</span>
+          <h2>Operational Runbooks</h2>
+        </div>
+
+        <h3 class="subsection">18.1 Onboarding a New HSM</h3>
+        <ol>
+          <li>Install the vendor PKCS#11 library on all KMS service nodes.</li>
+          <li>Configure the PKCS#11 slot in KMS service config: <code>aikms.hsm.provider: THALES</code>, <code>aikms.hsm.pkcs11-config-path: /etc/pkcs11/thales.cfg</code>.</li>
+          <li>Set <code>HSM_SLOT_PIN</code> in Vault at <code>secret/kms/hsm-slot-pin</code>.</li>
+          <li>Run the HSM connectivity health check: <code>GET /actuator/health/hsm</code>.</li>
+          <li>Generate a new namespace KEK via HSM: <code>POST /api/v1/admin/kek/generate?backend=hsm</code>.</li>
+          <li>Validate by creating a test key, encrypting, and decrypting a test payload.</li>
+          <li>Record the HSM serial number, slot ID, and KEK reference in the system inventory.</li>
+        </ol>
+
+        <h3 class="subsection">18.2 Promoting an AI Model to Production</h3>
+        <ol>
+          <li>Verify shadow evaluation metrics: precision ≥ 0.90, recall ≥ 0.85, F1 ≥ 0.87. False positive rate &lt; 5%.</li>
+          <li>Security Admin approves promotion: <code>POST /api/v1/admin/ai-models/{modelId}/promote</code>.</li>
+          <li>System performs canary rollout: 10% of events scored by new model.</li>
+          <li>Monitor for 1 hour. If deviation &gt; 20% from baseline, trigger rollback.</li>
+          <li>Full promotion: <code>POST /api/v1/admin/ai-models/{modelId}/promote?stage=full</code>.</li>
+          <li>Old model retained for rollback; write a promotion record to the audit log.</li>
+        </ol>
+        <div class="callout callout-info"><strong>Rollback:</strong> <code>POST /api/v1/admin/ai-models/{previousModelId}/promote</code> — instantly swaps production model back.</div>
+
+        <h3 class="subsection">18.3 Shamir Secret Recovery (Master Key Escrow)</h3>
+        <ol>
+          <li>Convene M-of-N custodians in a secure room; log attendance in the physical security register.</li>
+          <li>Execute the recovery ceremony tool: <code>java -jar aikms-recovery.jar --shares M --total N --output /secure/master.key</code></li>
+          <li>Each custodian enters their share PIN when prompted (in separate prompts).</li>
+          <li>The tool reconstructs the master key in memory and re-wraps all namespace KEKs.</li>
+          <li>Load the reconstructed master key immediately into the replacement HSM.</li>
+          <li>Destroy the temporary file: <code>shred -u /secure/master.key</code>.</li>
+          <li>Verify by running HSM health check and a test encrypt/decrypt cycle.</li>
+          <li>Record the ceremony in the audit log with attendees, date, and outcome.</li>
+        </ol>
+
+        <h3 class="subsection">18.4 Responding to a High-Risk Anomaly Alert</h3>
+        <ol>
+          <li>Acknowledge the alert in the dashboard within 15 minutes (Critical SLA).</li>
+          <li>Review anomaly event detail: anomaly types, affected key, caller identity, source IP.</li>
+          <li>If session risk score &gt; 90, suspend the caller: <code>PATCH /api/v1/identities/{id}</code> with <code>{ "state": "SUSPENDED" }</code>.</li>
+          <li>Check if the key was used for operations after the anomaly timestamp. Review audit log.</li>
+          <li>Rotate the key if exposure is confirmed: <code>POST /api/v1/keys/{keyId}/rotate</code>.</li>
+          <li>Notify stakeholders via the incident management system.</li>
+          <li>Close the anomaly with feedback: <code>PATCH /api/v1/anomalies/{anomalyId}</code> with <code>{ "status": "RESOLVED", "feedback": "CORRECT" }</code>.</li>
+        </ol>
+
+        <h3 class="subsection">18.5 Certificate Expiry Emergency Renewal</h3>
+        <ol>
+          <li>Check the certificate manager logs: <code>kubectl logs -l app=certificate-manager -n aikms | grep &lt;certificate_id&gt;</code>.</li>
+          <li>If ACME renewal failed, identify the cause (DNS challenge failure, rate limit, CA outage).</li>
+          <li>Manual retry: <code>POST /api/v1/certificates/{id}/renew?force=true</code>.</li>
+          <li>Manual upload: generate CSR, obtain certificate from CA, upload via <code>PUT /api/v1/certificates/{id}</code> with PEM body.</li>
+          <li>Trigger push distribution to endpoints: <code>POST /api/v1/certificates/{id}/distribute</code>.</li>
+          <li>Verify new <code>not_after</code> in the certificate inventory and confirm endpoint health.</li>
+        </ol>
+
+        <h3 class="subsection">18.6 Kafka Consumer Lag Recovery</h3>
+        <ol>
+          <li>Check Audit Service pod count and health: <code>kubectl get pods -l app=audit-service -n aikms</code>.</li>
+          <li>If pods are crashing, inspect logs: <code>kubectl logs &lt;pod-name&gt; -n aikms --previous</code>.</li>
+          <li>If lag is due to processing bottleneck, scale up: <code>kubectl scale deployment audit-service --replicas=6 -n aikms</code>.</li>
+          <li>Monitor the <code>aikms_kafka_consumer_lag</code> metric in Grafana.</li>
+          <li>Once lag returns below 1,000, scale back to normal replica count.</li>
+          <li>If a poison pill message is suspected, use <code>kafka-consumer-groups.sh</code> to inspect and advance the offset.</li>
+        </ol>
+      </div><!-- /section runbooks -->
+
+      <!-- ═══════════════════════════════════ SECTION 19 ══════ -->
+      <div class="section" id="hsm-sim">
+        <div class="section-header">
+          <span class="section-number">19</span>
+          <h2>HSM Simulator</h2>
+        </div>
+
+        <!-- 19.1 Overview -->
+        <h3 class="subsection" id="hsm-sim-overview">19.1 Overview</h3>
+        <p>The <strong>AIKMS HSM Simulator</strong> is a purpose-built software component that faithfully emulates a FIPS 140-2/3 Hardware Security Module over the <strong>PKCS#11 v2.40 API</strong>. It is used exclusively in <strong>development, CI/CD, and integration testing</strong> environments where a physical HSM is unavailable or impractical. It is <strong>not</strong> intended for production use.</p>
+        <p>The simulator allows any AIKMS service using the <code>SunPKCS11</code> / <code>JCA</code> provider to connect without code changes — only the PKCS#11 library path and slot PIN configuration differ between the simulator and a real HSM.</p>
+        <div class="callout callout-warning">
+          <strong>Scope:</strong> Development, CI/CD, and integration testing only. Never deploy to production or staging. The CI/CD pipeline enforces this via a Helm chart policy check (see §19.10).
+        </div>
+        <p><strong>Goals:</strong></p>
+        <ul>
+          <li>Zero physical hardware dependency for the developer inner loop and CI pipelines.</li>
+          <li>Deterministic, inspectable behaviour for test assertions.</li>
+          <li>Configurable fault injection to validate AIKMS resilience paths (circuit breakers, retries, fallback modes).</li>
+          <li>Drop-in replacement: same PKCS#11 interface as Thales Luna, Entrust nShield, and AWS CloudHSM.</li>
+        </ul>
+
+        <!-- 19.2 Scope -->
+        <h3 class="subsection" id="hsm-sim-scope">19.2 Scope of Simulation</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>PKCS#11 Capability</th><th>Simulated</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Slot &amp; token management (<code>C_GetSlotList</code>, <code>C_GetTokenInfo</code>)</td><td>Yes</td><td>Single configurable slot</td></tr>
+              <tr><td>Session management (<code>C_OpenSession</code>, <code>C_Login</code>, <code>C_Logout</code>)</td><td>Yes</td><td>Supports both <code>USER</code> and <code>SO</code> roles</td></tr>
+              <tr><td>Key generation (<code>C_GenerateKey</code>, <code>C_GenerateKeyPair</code>)</td><td>Yes</td><td>AES, RSA, EC (P-256/P-384/P-521), Ed25519</td></tr>
+              <tr><td>Key import/export (<code>C_CreateObject</code>, <code>C_GetAttributeValue</code>)</td><td>Yes (import only)</td><td>Export blocked by default (simulates <code>EXTRACTABLE=false</code>)</td></tr>
+              <tr><td>Symmetric encrypt/decrypt (<code>C_EncryptInit</code>, <code>C_DecryptInit</code>)</td><td>Yes</td><td>AES-CBC, AES-GCM</td></tr>
+              <tr><td>Asymmetric sign/verify (<code>C_SignInit</code>, <code>C_VerifyInit</code>)</td><td>Yes</td><td>RSA-PKCS1, RSA-PSS, ECDSA, EdDSA</td></tr>
+              <tr><td>Key wrapping/unwrapping (<code>C_WrapKey</code>, <code>C_UnwrapKey</code>)</td><td>Yes</td><td>RSA-OAEP, AES-KWP</td></tr>
+              <tr><td>Digest (<code>C_DigestInit</code>, <code>C_Digest</code>)</td><td>Yes</td><td>SHA-256, SHA-384, SHA-512</td></tr>
+              <tr><td>Random generation (<code>C_GenerateRandom</code>)</td><td>Yes</td><td>Backed by <code>SecureRandom</code> (Java)</td></tr>
+              <tr><td>Dual-control PIN enforcement</td><td>Yes (configurable)</td><td>Simulate M-of-N quorum requirement</td></tr>
+              <tr><td>Physical tamper detection</td><td>No</td><td>Out of scope for software simulation</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 19.3 Architecture -->
+        <h3 class="subsection" id="hsm-sim-arch">19.3 Architecture</h3>
+        <pre>┌───────────────────────────────────────────────────────────────┐
+│                  AIKMS KMS Service (JVM)                      │
+│   SunPKCS11 Provider ──────────> PKCS#11 Native Bridge (JNI)  │
+└────────────────────────────────┬──────────────────────────────┘
+                                 │  PKCS#11 v2.40 C API
+                                 ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    HSM Simulator (Java)                       │
+│                                                               │
+│  ┌──────────────┐  ┌────────────────┐  ┌──────────────────┐  │
+│  │ PKCS#11 JNI  │  │Session Manager │  │ Slot / Token     │  │
+│  │ Shim (C stub)│  │(login,sessions)│  │ Registry         │  │
+│  └──────┬───────┘  └───────┬────────┘  └────────┬─────────┘  │
+│         └──────────────────▼────────────────────┘            │
+│                     ┌──────────────────┐                      │
+│                     │  Crypto Engine   │                      │
+│                     │ (BouncyCastle)  │                      │
+│                     └──────┬───────────┘                      │
+│          ┌─────────────────▼──────────────────────────┐       │
+│          │          Key Object Store                   │       │
+│          │  (in-memory Map + optional file persistence)│       │
+│          └────────────────────────────────────────────┘       │
+│          ┌─────────────────────────────────────────────┐      │
+│          │       Fault Injection Engine                │      │
+│          │ (CKR_DEVICE_ERROR, delays, partial failures)│      │
+│          └─────────────────────────────────────────────┘      │
+│          ┌─────────────────────────────────────────────┐      │
+│          │   Audit / Inspection HTTP API (:9095)        │      │
+│          │   GET /sim/objects  POST /sim/fault  etc.    │      │
+│          └─────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────────────────┘</pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+            <tbody>
+              <tr><td><strong>PKCS#11 JNI Shim</strong></td><td>Thin C shared library (<code>hsm-sim.so</code> / <code>hsm-sim.dll</code>) that forwards all PKCS#11 C calls to Java via JNI</td></tr>
+              <tr><td><strong>Session Manager</strong></td><td>Tracks open sessions, <code>SO</code> vs <code>USER</code> PIN enforcement, concurrent session limits</td></tr>
+              <tr><td><strong>Slot / Token Registry</strong></td><td>Configurable slots with label, flags, and PIN. Supports <code>C_InitToken</code> and <code>C_InitPIN</code></td></tr>
+              <tr><td><strong>Crypto Engine</strong></td><td>Delegates all operations to BouncyCastle 1.78 (FIPS build for FIPS mode)</td></tr>
+              <tr><td><strong>Key Object Store</strong></td><td>Thread-safe in-memory store of all <code>CKO_*</code> objects. Optional JSON/PKCS#12 persistence to disk</td></tr>
+              <tr><td><strong>Fault Injection Engine</strong></td><td>Injects configurable PKCS#11 errors via REST API or YAML configuration</td></tr>
+              <tr><td><strong>Inspection HTTP API</strong></td><td>Out-of-band REST API on port 9095 for test assertions and simulator state management</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 19.4 Technology Stack -->
+        <h3 class="subsection" id="hsm-sim-stack">19.4 Technology Stack</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Choice</th><th>Rationale</th></tr></thead>
+            <tbody>
+              <tr><td>Language</td><td>Java 21</td><td>Consistent runtime; direct JNI bridging with the KMS service</td></tr>
+              <tr><td>Build</td><td>Gradle 8 multi-module (<code>:hsm-simulator</code>)</td><td>Shares build infrastructure with the rest of AIKMS</td></tr>
+              <tr><td>Crypto library</td><td>BouncyCastle 1.78 (<code>bcprov-jdk18on</code>)</td><td>Full PKCS#11 algorithm coverage; FIPS build available</td></tr>
+              <tr><td>JNI bridge</td><td>Custom C shim (<code>pkcs11_shim.c</code>)</td><td>Maps C PKCS#11 structs directly to Java method calls</td></tr>
+              <tr><td>Native compilation</td><td>GraalVM Native Image (optional)</td><td>Eliminates JVM warmup in ephemeral CI containers</td></tr>
+              <tr><td>HTTP inspection API</td><td>Spring Boot 3.3 (minimal, embedded Netty)</td><td>Consistent with the AIKMS service stack</td></tr>
+              <tr><td>Containerization</td><td>Docker image: <code>aikms/hsm-simulator:&lt;version&gt;-dev</code></td><td>Ships as a single image; no external dependencies</td></tr>
+              <tr><td>Test integration</td><td>Testcontainers <code>GenericContainer</code></td><td>Programmatic lifecycle management in integration tests</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 19.5 Fault Injection -->
+        <h3 class="subsection" id="hsm-sim-fault">19.5 Fault Injection</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fault ID</th><th>PKCS#11 Error</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>HSM_BUSY</code></td><td><code>CKR_DEVICE_BUSY</code></td><td>Simulate HSM slot saturation; configurable delay before error</td></tr>
+              <tr><td><code>HSM_TIMEOUT</code></td><td><code>CKR_DEVICE_ERROR</code></td><td>Simulate a slow response exceeding the PKCS#11 timeout</td></tr>
+              <tr><td><code>HSM_DISCONNECTED</code></td><td><code>CKR_TOKEN_NOT_PRESENT</code></td><td>Simulate complete loss of HSM connectivity</td></tr>
+              <tr><td><code>PIN_LOCKED</code></td><td><code>CKR_PIN_LOCKED</code></td><td>Simulate PIN locked after too many failed authentications</td></tr>
+              <tr><td><code>KEY_NOT_FOUND</code></td><td><code>CKR_OBJECT_HANDLE_INVALID</code></td><td>Simulate a key deleted from HSM outside of AIKMS</td></tr>
+              <tr><td><code>RANDOM_FAILURE</code></td><td><code>CKR_RANDOM_NO_RNG</code></td><td>Simulate RNG subsystem failure during key generation</td></tr>
+              <tr><td><code>PARTIAL_FAILURE</code></td><td>Alternating <code>CKR_OK</code> / <code>CKR_DEVICE_ERROR</code></td><td>Flapping HSM — succeeds N% of the time (configurable)</td></tr>
+              <tr><td><code>SLOW_RESPONSE</code></td><td><code>CKR_OK</code> (with latency)</td><td>Artificial latency without failing — triggers slow-call circuit breaker</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre>// Inject a fault
+POST /sim/fault
+{
+  "faultId": "HSM_BUSY",
+  "operations": ["C_Encrypt", "C_GenerateKey"],
+  "triggerAfterCount": 5,    // inject after N successful calls
+  "durationCalls": 10,       // persist for N calls (0 = permanent)
+  "latencyMs": 0
+}
+
+DELETE /sim/fault             // clear all active faults
+GET    /sim/fault             // list active faults</pre>
+
+        <!-- 19.6 Inspection API -->
+        <h3 class="subsection" id="hsm-sim-inspect">19.6 Inspection &amp; Test Assertion API</h3>
+        <pre>GET  /sim/slots                 // list configured slots and token info
+GET  /sim/sessions             // list open sessions with state
+GET  /sim/objects              // list all key objects (handle, class, label, algo, size)
+GET  /sim/objects/{handle}     // full attribute dump for a specific object
+GET  /sim/calls                // structured log of every PKCS#11 call made
+DELETE /sim/reset              // clear all sessions, objects, and faults</pre>
+        <p><strong>Example: Assert a key was generated in the simulator from a JUnit test</strong></p>
+        <pre>@Test
+void keyCreationUsesHsm() {
+    var response = kmsClient.createKey(CreateKeyRequest.builder()
+        .name("test-key").algorithm("AES").keySizeBits(256).hsmBacked(true).build());
+
+    var simObjects = simClient.getObjects();  // GET /sim/objects
+    assertThat(simObjects)
+        .anyMatch(obj -> obj.label().equals("test-key")
+                      &amp;&amp; obj.ckClass().equals("CKO_SECRET_KEY"));
+}</pre>
+
+        <!-- 19.7 Configuration -->
+        <h3 class="subsection" id="hsm-sim-config">19.7 Configuration</h3>
+        <pre>// hsm-simulator/src/main/resources/application.yml
+hsm-sim:
+  slots:
+    - slot-id: 0
+      label: "AIKMS-DEV-TOKEN"
+      so-pin: "${HSM_SIM_SO_PIN}"      # injected via env — never hardcode
+      user-pin: "${HSM_SIM_USER_PIN}"
+      max-sessions: 64
+      persistence:
+        enabled: false                 # true = persist key objects to disk
+        path: "/var/hsm-sim/token0"
+  server:
+    port: 9094                         # PKCS#11 bridge
+    inspection-port: 9095              # HTTP inspection API
+  crypto:
+    fips-mode: false                   # true = BouncyCastle FIPS build
+  fault-injection:
+    enabled: true                      # must be false in staging
+  audit:
+    log-all-calls: true</pre>
+        <pre>// PKCS#11 config file at /etc/pkcs11/hsm-sim.cfg
+name = AIKMS-HSM-Simulator
+library = /usr/local/lib/hsm-sim.so
+slot = 0</pre>
+
+        <!-- 19.8 Docker & Testcontainers -->
+        <h3 class="subsection" id="hsm-sim-docker">19.8 Docker &amp; Testcontainers Integration</h3>
+        <pre>// docker-compose.dev.yml
+services:
+  hsm-simulator:
+    image: aikms/hsm-simulator:latest-dev
+    ports:
+      - "9094:9094"
+      - "9095:9095"
+    environment:
+      HSM_SIM_USER_PIN: "changeit"
+      HSM_SIM_SO_PIN: "administrator"
+      HSM_SIM_FAULT_INJECTION_ENABLED: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9095/sim/slots"]
+      interval: 5s
+      timeout: 3s
+      retries: 5</pre>
+        <pre>// Testcontainers usage
+@Container
+static GenericContainer&lt;?&gt; hsmSimulator =
+    new GenericContainer&lt;&gt;("aikms/hsm-simulator:latest-dev")
+        .withExposedPorts(9094, 9095)
+        .withEnv("HSM_SIM_USER_PIN", "changeit")
+        .withEnv("HSM_SIM_FAULT_INJECTION_ENABLED", "true")
+        .waitingFor(Wait.forHttp("/sim/slots").forPort(9095));
+
+@AfterEach
+void resetSimulator() {
+    simClient.reset();   // DELETE /sim/reset — clean state between tests
+}</pre>
+
+        <!-- 19.9 Module Structure -->
+        <h3 class="subsection" id="hsm-sim-modules">19.9 Gradle Module Structure</h3>
+        <pre>aikms/
+└── hsm-simulator/
+    ├── build.gradle
+    ├── src/main/
+    │   ├── c/
+    │   │   └── pkcs11_shim.c               # JNI C shim: PKCS#11 C API → Java
+    │   └── java/com/aikms/hsmsim/
+    │       ├── HsmSimulatorApplication.java
+    │       ├── slot/
+    │       │   ├── SlotRegistry.java
+    │       │   └── TokenInfo.java
+    │       ├── session/
+    │       │   ├── SessionManager.java
+    │       │   └── SessionState.java
+    │       ├── crypto/
+    │       │   ├── CryptoEngine.java         # BouncyCastle delegate
+    │       │   ├── KeyObjectStore.java
+    │       │   └── Pkcs11Operations.java     # maps PKCS#11 ops → CryptoEngine
+    │       ├── fault/
+    │       │   ├── FaultInjectionEngine.java
+    │       │   └── FaultRule.java
+    │       └── api/
+    │           └── InspectionController.java # Spring MVC inspection endpoints
+    ├── src/test/java/com/aikms/hsmsim/
+    │   ├── Pkcs11OperationsTest.java         # unit tests per operation
+    │   ├── FaultInjectionTest.java
+    │   └── Pkcs11RoundTripIT.java            # integration test via SunPKCS11
+    └── docker/
+        └── Dockerfile</pre>
+
+        <!-- 19.10 Security Constraints -->
+        <h3 class="subsection" id="hsm-sim-security">19.10 Security Constraints</h3>
+        <ul>
+          <li>The simulator <strong>must never</strong> be deployed in production or staging. The Docker image tag must include a <code>-dev</code> suffix; CI/CD pipelines must reject any deployment of <code>hsm-simulator</code> to the <code>production</code> namespace.</li>
+          <li>The fault injection endpoint (<code>/sim/fault</code>) must be protected by a static bearer token in non-development environments.</li>
+          <li>The inspection API (<code>/sim/objects</code>) must not be exposed outside the internal Docker/Kubernetes network (<code>NetworkPolicy: deny-all-ingress-except-internal</code>).</li>
+          <li>Key material is stored in JVM heap memory only. If <code>persistence.enabled: true</code>, the persistence path must be on a <code>tmpfs</code> mount in CI — never on persistent disk in shared environments.</li>
+          <li>The SO PIN and User PIN must never be hardcoded in source code; they must be injected via environment variable.</li>
+        </ul>
+
+        <!-- 19.11 Acceptance Criteria -->
+        <h3 class="subsection" id="hsm-sim-ac">19.11 Acceptance Criteria</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Criterion</th></tr></thead>
+            <tbody>
+              <tr><td><span class="fr-id blue">SIM-AC-01</span></td><td>All PKCS#11 functions in §19.2 return correct results for valid inputs with no physical HSM present.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-02</span></td><td>The KMS service executes key creation, encryption, decryption, and signing via the simulator without any code changes vs. a real HSM.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-03</span></td><td>Injecting <code>HSM_BUSY</code> triggers the KMS circuit breaker to open after the configured failure rate threshold.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-04</span></td><td>Injecting <code>HSM_DISCONNECTED</code> causes the KMS health endpoint to report <code>"hsm": "DOWN"</code>.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-05</span></td><td><code>DELETE /sim/reset</code> clears all key objects and sessions; subsequent operations behave as on a fresh token.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-06</span></td><td>The simulator Docker image starts in &lt; 5 seconds and <code>GET /sim/slots</code> returns 200 OK.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-07</span></td><td><code>GET /sim/calls</code> returns a structured log of all PKCS#11 calls with timestamps, operation name, session ID, and return code.</td></tr>
+              <tr><td><span class="fr-id blue">SIM-AC-08</span></td><td>The simulator image is absent from all Helm charts targeting the <code>production</code> namespace, enforced by a CI policy check.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /section hsm-sim -->
+
+      <a href="#top" class="back-to-top">&#8593; Back to top</a>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+</div><!-- /page-wrapper -->
+
+<script>
+  // Highlight active nav link based on scroll position
+  (function () {
+    const links = document.querySelectorAll('.sidebar nav a');
+    const sections = [];
+
+    links.forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        var el = document.querySelector(href);
+        if (el) sections.push({ el: el, link: link });
+      }
+    });
+
+    function onScroll() {
+      var scrollY = window.scrollY + 120;
+      var current = null;
+      sections.forEach(function (s) {
+        if (s.el.offsetTop <= scrollY) current = s;
+      });
+      links.forEach(function (l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+
+</body>
+</html>
